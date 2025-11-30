@@ -1,1 +1,2904 @@
-<!DOCTYPE html><html lang="ru"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>SecDet BugBounty</title> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@300;400;700&display=swap" rel="stylesheet"> <style> * { margin: 0; padding: 0; box-sizing: border-box; } body { font-family: 'Roboto Mono', monospace; background: linear-gradient(135deg, #0a0a12, #0d0d15); color: #e0e0ff; min-height: 100vh; overflow-x: hidden; position: relative; display: flex; } body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 10% 20%, rgba(0, 150, 255, 0.05) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(0, 200, 150, 0.05) 0%, transparent 40%), repeating-linear-gradient(45deg, rgba(20, 25, 40, 0.1) 0px, rgba(20, 25, 40, 0.1) 1px, transparent 1px, transparent 11px), repeating-linear-gradient(135deg, rgba(20, 25, 40, 0.1) 0px, rgba(20, 25, 40, 0.1) 1px, transparent 1px, transparent 11px); z-index: -2; pointer-events: none; } .sidebar { width: 320px; background: rgba(10, 12, 20, 0.95); border-right: 1px solid rgba(0, 200, 150, 0.3); padding: 30px 20px; position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; z-index: 100; box-shadow: 0 0 30px rgba(0, 0, 0, 0.7); transition: transform 0.4s ease; } .sidebar::-webkit-scrollbar { width: 8px; } .sidebar::-webkit-scrollbar-track { background: rgba(20, 25, 40, 0.3); border-radius: 4px; } .sidebar::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #00ccff, #00ff99); border-radius: 4px; border: 1px solid rgba(0, 200, 150, 0.5); } .sidebar::-webkit-scrollbar-thumb:hover { background: linear-gradient(to bottom, #00aaff, #00dd99); } .profile { text-align: center; padding-bottom: 25px; margin-bottom: 25px; border-bottom: 1px solid rgba(0, 200, 150, 0.2); } .avatar { width: 120px; height: 120px; border-radius: 50%; border: 3px solid #00ccff; margin: 0 auto 20px; overflow: hidden; position: relative; background: linear-gradient(45deg, #0a0a1a, #0d0d20); display: flex; align-items: center; justify-content: center; } .avatar i { font-size: 50px; color: #00ff99; } .username { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; color: #00ccff; margin-bottom: 10px; text-shadow: 0 0 10px rgba(0, 150, 255, 0.4); } .user-title { color: #00ff99; font-size: 1.1rem; margin-bottom: 20px; } .contact-info { margin-bottom: 30px; } .contact-item { display: flex; align-items: center; margin-bottom: 15px; padding: 10px; background: rgba(20, 25, 40, 0.4); border-radius: 5px; transition: all 0.3s ease; border-left: 3px solid #00ccff; } .contact-item:hover { background: rgba(30, 35, 50, 0.6); transform: translateX(5px); } .contact-icon { width: 36px; height: 36px; background: rgba(0, 150, 255, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; color: #00ccff; font-size: 16px; } .contact-text { color: #e0e0ff; font-size: 0.95rem; } .social-links { display: flex; justify-content: center; gap: 15px; margin-top: 20px; } .social-link { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(30, 35, 50, 0.5); color: #00ccff; font-size: 18px; transition: all 0.3s ease; border: 1px solid rgba(0, 200, 150, 0.3); text-decoration: none; } .social-link:hover { background: linear-gradient(45deg, #00aaff, #00ff99); color: #0a0a12; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0, 200, 150, 0.4); } .preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0a0a12, #0d0d15); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; transition: opacity 0.8s, visibility 0.8s; } .preloader-logo { font-family: 'Orbitron', sans-serif; font-size: 3.5rem; font-weight: 900; text-transform: uppercase; margin-bottom: 2rem; background: linear-gradient(45deg, #00aaff, #00ff99); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 0 15px rgba(0, 150, 255, 0.4); letter-spacing: 4px; } .loading-container { width: 80%; max-width: 500px; background: rgba(10, 12, 20, 0.7); border: 1px solid rgba(0, 200, 150, 0.3); border-radius: 5px; padding: 15px; box-shadow: 0 0 20px rgba(0, 200, 150, 0.2); margin-bottom: 30px; } .loading-text { font-size: 1.1rem; text-align: center; margin-bottom: 15px; color: #00ccff; font-weight: 300; } .loading-bar { height: 8px; background: rgba(30, 35, 50, 0.8); border-radius: 4px; overflow: hidden; position: relative; } .progress { position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: linear-gradient(90deg, #00aaff, #00ff99); border-radius: 4px; transition: width 0.5s ease; box-shadow: 0 0 10px rgba(0, 200, 150, 0.6); } .loading-percentage { text-align: center; margin-top: 10px; font-size: 1rem; color: #00ff99; } .loading-messages { margin-top: 20px; text-align: center; color: #00ccff; height: 20px; font-size: 0.9rem; } .terminal-code { width: 80%; max-width: 500px; margin-top: 30px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(0, 200, 150, 0.2); border-radius: 5px; padding: 15px; font-family: 'Roboto Mono', monospace; font-size: 0.8rem; color: #00ff99; max-height: 200px; overflow-y: auto; } .terminal-code div { animation: typing 0.5s steps(40, end); } .terminal-code div:nth-child(2) { animation-delay: 0.5s; } .terminal-code div:nth-child(3) { animation-delay: 1.5s; } .terminal-code div:nth-child(4) { animation-delay: 2.5s; } .terminal-code div:nth-child(5) { animation-delay: 3.5s; } @keyframes typing { from { width: 0; opacity: 0; } to { width: 100%; opacity: 1; } } .main-content { flex: 1; margin-left: 280px; padding: 20px; position: relative; } .content { display: none; opacity: 0; transition: opacity 1s ease-in; } .header { text-align: center; padding: 40px 20px 20px; margin-bottom: 40px; position: relative; } .header::after { content: ""; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 200px; height: 4px; background: linear-gradient(90deg, transparent, #00aaff, #00ff99, transparent); border-radius: 2px; } .title { font-family: 'Orbitron', sans-serif; font-size: 4rem; font-weight: 900; text-transform: uppercase; background: linear-gradient(45deg, #00aaff, #00ff99); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 0 20px rgba(0, 150, 255, 0.4); letter-spacing: 4px; margin-bottom: 15px; position: relative; display: inline-block; } .title::after { content: ""; position: absolute; bottom: -10px; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, #00aaff, #00ff99); border-radius: 3px; } .subtitle { font-size: 1.4rem; color: #00ccff; font-weight: 300; max-width: 700px; margin: 0 auto; line-height: 1.6; } .articles-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 30px; max-width: 1400px; margin: 0 auto; padding: 20px; } .card { background: rgba(10, 12, 20, 0.8); border: 1px solid rgba(0, 200, 150, 0.2); border-radius: 10px; overflow: hidden; transition: all 0.4s ease; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); position: relative; transform-style: preserve-3d; perspective: 1000px; } .card:hover { transform: translateY(-10px) rotateX(5deg) rotateY(-2deg); box-shadow: 0 20px 40px rgba(0, 200, 150, 0.3), 0 0 30px rgba(0, 200, 150, 0.2); border-color: rgba(0, 200, 150, 0.6); } .card::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: linear-gradient(90deg, #00aaff, #00ff99); z-index: 2; } .card-header { padding: 25px; background: rgba(20, 25, 40, 0.4); border-bottom: 1px solid rgba(0, 200, 150, 0.2); position: relative; } .card-title { font-family: 'Orbitron', sans-serif; font-size: 1.7rem; color: #00ccff; margin-bottom: 15px; letter-spacing: 1px; position: relative; z-index: 1; } .card-meta { display: flex; font-size: 0.85rem; color: #00ff99; position: relative; z-index: 1; } .card-meta div { margin-right: 15px; display: flex; align-items: center; } .card-meta i { margin-right: 5px; color: #00ccff; } .card-body { padding: 25px; position: relative; z-index: 1; } .card-description { color: #e0e0ff; line-height: 1.7; font-size: 1.05rem; } .card-footer { padding: 20px 25px; background: rgba(20, 25, 40, 0.4); border-top: 1px solid rgba(0, 200, 150, 0.2); display: flex; justify-content: space-between; position: relative; z-index: 1; } .tag { background: rgba(0, 150, 255, 0.2); color: #00ff99; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; display: inline-block; } .read-more { background: linear-gradient(45deg, #00aaff, #00ff99); color: #0a0a12; border: none; padding: 8px 20px; border-radius: 20px; font-family: 'Roboto Mono', monospace; font-size: 0.9rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; outline: none; } .read-more:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 200, 150, 0.4); } .card-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(45deg, rgba(0, 150, 255, 0.05), transparent 70%), linear-gradient(135deg, rgba(0, 200, 150, 0.05), transparent 70%); opacity: 0.3; pointer-events: none; } .card-code { position: absolute; top: 0; left: 0; width: 100%; height: 100%; font-family: 'Roboto Mono', monospace; font-size: 12px; color: rgba(0, 255, 150, 0.15); padding: 15px; line-height: 1.4; overflow: hidden; pointer-events: none; } .glitch { position: relative; display: inline-block; } .glitch::before, .glitch::after { content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; } .glitch::before { left: 2px; text-shadow: -1px 0 #00f7ff; clip: rect(44px, 450px, 56px, 0); animation: glitch-anim 5s infinite linear alternate-reverse; } .glitch::after { left: -2px; text-shadow: -1px 0 #00ff99; clip: rect(44px, 450px, 56px, 0); animation: glitch-anim2 5s infinite linear alternate-reverse; } @keyframes glitch-anim { 0% { clip: rect(42px, 9999px, 44px, 0); } 5% { clip: rect(12px, 9999px, 59px, 0); } 10% { clip: rect(48px, 9999px, 29px, 0); } 15% { clip: rect(42px, 9999px, 73px, 0); } 20% { clip: rect(63px, 9999px, 27px, 0); } 25% { clip: rect(34px, 9999px, 55px, 0); } 30% { clip: rect(86px, 9999px, 73px, 0); } 35% { clip: rect(20px, 9999px, 20px, 0); } 40% { clip: rect(26px, 9999px, 60px, 0); } 45% { clip: rect(25px, 9999px, 66px, 0); } 50% { clip: rect(57px, 9999px, 98px, 0); } 55% { clip: rect(5px, 9999px, 46px, 0); } 60% { clip: rect(82px, 9999px, 31px, 0); } 65% { clip: rect(54px, 9999px, 27px, 0); } 70% { clip: rect(28px, 9999px, 99px, 0); } 75% { clip: rect(45px, 9999px, 69px, 0); } 80% { clip: rect(23px, 9999px, 85px, 0); } 85% { clip: rect(54px, 9999px, 84px, 0); } 90% { clip: rect(45px, 9999px, 47px, 0); } 95% { clip: rect(37px, 9999px, 20px, 0); } 100% { clip: rect(73px, 9999px, 99px, 0); } } @keyframes glitch-anim2 { 0% { clip: rect(65px, 9999px, 100px, 0); } 5% { clip: rect(52px, 9999px, 74px, 0); } 10% { clip: rect(79px, 9999px, 85px, 0); } 15% { clip: rect(75px, 9999px, 5px, 0); } 20% { clip: rect(67px, 9999px, 61px, 0); } 25% { clip: rect(14px, 9999px, 79px, 0); } 30% { clip: rect(1px, 9999px, 66px, 0); } 35% { clip: rect(86px, 9999px, 30px, 0); } 40% { clip: rect(23px, 9999px, 98px, 0); } 45% { clip: rect(85px, 9999px, 72px, 0); } 50% { clip: rect(71px, 9999px, 75px, 0); } 55% { clip: rect(2px, 9999px, 48px, 0); } 60% { clip: rect(30px, 9999px, 16px, 0); } 65% { clip: rect(59px, 9999px, 50px, 0); } 70% { clip: rect(41px, 9999px, 62px, 0); } 75% { clip: rect(2px, 9999px, 82px, 0); } 80% { clip: rect(47px, 9999px, 73px, 0); } 85% { clip: rect(3px, 9999px, 27px, 0); } 90% { clip: rect(26px, 9999px, 55px, 0); } 95% { clip: rect(42px, 9999px, 97px, 0); } 100% { clip: rect(38px, 9999px, 49px, 0); } } .matrix-code { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.05; pointer-events: none; } .matrix-row { display: flex; justify-content: space-around; font-family: 'Roboto Mono', monospace; color: #00ff99; font-size: 18px; white-space: nowrap; margin-bottom: 10px; } @media (max-width: 1024px) { .sidebar { transform: translateX(-280px); } .sidebar.active { transform: translateX(0); } .main-content { margin-left: 0; } .menu-toggle { display: block; } } @media (max-width: 768px) { .title { font-size: 2.5rem; } .subtitle { font-size: 1.1rem; } .articles-container { grid-template-columns: 1fr; } .preloader-logo { font-size: 2.5rem; } } @media (max-width: 480px) { .title { font-size: 2rem; } .card-header, .card-body, .card-footer { padding: 15px; } .preloader-logo { font-size: 2rem; } .loading-container, .terminal-code { width: 95%; } .username { font-size: 1.5rem; } } .menu-toggle { position: fixed; top: 20px; left: 20px; width: 30px; height: 30px; background: rgba(20, 25, 40, 0.8); border: 1px solid rgba(0, 200, 150, 0.3); border-radius: 5px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; z-index: 101; display: none; } .menu-toggle span { display: block; width: 25px; height: 3px; background: #00ccff; margin: 4px 0; transition: all 0.3s ease; } .section-title { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: #00ccff; margin: 30px 0 20px; padding-bottom: 10px; border-bottom: 1px solid rgba(0, 200, 150, 0.3); position: relative; } .section-title::after { content: ""; position: absolute; bottom: -1px; left: 0; width: 100px; height: 2px; background: linear-gradient(90deg, #00aaff, #00ff99); } .sound-toggle { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background: rgba(20, 25, 40, 0.8); border: 1px solid rgba(0, 200, 150, 0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 102; color: #00ccff; font-size: 22px; transition: all 0.3s ease; } .sound-toggle:hover { background: rgba(30, 35, 50, 0.9); transform: scale(1.1); } .sound-toggle.muted { color: #ff6666; } .hack-container { display: none; justify-content: center; margin-top: 30px; opacity: 0; transform: translateY(20px); transition: opacity 0.8s ease, transform 0.8s ease; } .hack-container.visible { display: flex; opacity: 1; transform: translateY(0); } .hack-btn { background: transparent; color: #00ff99; border: 2px solid #00ff99; padding: 15px 40px; font-family: 'Roboto Mono', monospace; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 3px; cursor: pointer; position: relative; overflow: hidden; transition: all 0.5s ease; outline: none; z-index: 1; text-shadow: 0 0 10px rgba(0, 255, 150, 0.4); box-shadow: 0 0 15px rgba(0, 255, 150, 0.3); } .hack-btn::before { content: ''; position: absolute; top: 0; left: 0; width: 0; height: 100%; background: rgba(0, 255, 150, 0.2); transition: width 0.5s ease; z-index: -1; } .hack-btn:hover { color: #0a0a12; background: #00ff99; box-shadow: 0 0 20px rgba(0, 255, 150, 0.6); } .hack-btn:hover::before { width: 100%; } .typing-text { overflow: hidden; white-space: nowrap; display: inline-block; } @keyframes titleFadeIn { 0% { opacity: 0; transform: translateY(20px); text-shadow: 0 0 30px rgba(0, 200, 255, 0); } 100% { opacity: 1; transform: translateY(0); text-shadow: 0 0 30px rgba(0, 200, 255, 0.4); } } .title.animated { animation: titleFadeIn 1.5s forwards; } .subtitle.animated { animation: titleFadeIn 1.5s forwards; animation-delay: 0.5s; } .sidebar-item-hover { position: relative; overflow: hidden; } .sidebar-item-hover::after { content: ''; position: absolute; left: 0; bottom: 0; width: 0; height: 2px; background: linear-gradient(90deg, #00aaff, #00ff99); transition: width 0.3s ease; } .sidebar-item-hover:hover::after { width: 100%; } .user-title { transition: all 0.3s ease; } .user-title:hover { text-shadow: 0 0 10px rgba(0, 255, 150, 0.6); transform: scale(1.05); } @keyframes fadeOutLogo { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.7; text-shadow: 0 0 30px rgba(0, 255, 150, 0.8); } 100% { transform: scale(0); opacity: 0; } } .char { display: inline-block; transition: transform 0.3s ease, color 0.3s ease; transform: translateY(0); } .char-animate { transform: translateY(-5px); color: #00ff99; text-shadow: 0 0 10px rgba(0, 255, 150, 0.6); } .title, .subtitle { min-height: 1.2em; line-height: 1.2; } .title { margin-bottom: 30px; } .username-container, .user-title-container { display: inline-block; position: relative; overflow: hidden; } .username-container::after, .user-title-container::after { content: ''; position: absolute; left: 0; bottom: 0; width: 0; height: 2px; background: linear-gradient(90deg, #00aaff, #00ff99); transition: width 0.5s ease; } .username-container:hover::after, .user-title-container:hover::after { width: 100%; } .loading-container, .terminal-code { transition: opacity 0.8s ease, transform 0.8s ease; } @keyframes zoomOut { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.7; text-shadow: 0 0 30px rgba(0, 255, 150, 0.8); } 100% { transform: scale(0); opacity: 0; } } .preloader-logo-fade { animation: zoomOut 1s forwards; } .title { min-height: 1.2em; line-height: 1.2; margin-bottom: 30px; } .subtitle { animation: none !important; opacity: 1 !important; transform: none !important; } .resources-section { max-width: 1200px; margin: 40px auto; padding: 20px; } .resources-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 30px; } .resource-item { background: rgba(10, 12, 20, 0.6); border: 1px solid rgba(0, 200, 150, 0.3); border-radius: 8px; padding: 20px; text-align: center; transition: all 0.3s ease; position: relative; overflow: hidden; } .resource-item:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0, 200, 150, 0.2); border-color: rgba(0, 200, 150, 0.6); } .resource-icon { font-size: 2.5rem; margin-bottom: 15px; color: #00ccff; text-shadow: 0 0 15px rgba(0, 150, 255, 0.4); } .resource-title { font-size: 1.2rem; color: #00ff99; margin-bottom: 10px; font-family: 'Orbitron', sans-serif; } .resource-description { font-size: 0.9rem; color: #b0b0ff; line-height: 1.5; } .resource-item::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, #00aaff, #00ff99); opacity: 0.7; } .tools-section { max-width: 1200px; margin: 60px auto 30px; padding: 20px; } .tools-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; margin-top: 30px; } .tool-card { background: rgba(10, 12, 20, 0.8); border: 1px solid rgba(0, 200, 150, 0.2); border-radius: 10px; overflow: hidden; transition: all 0.4s ease; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); position: relative; transform-style: preserve-3d; perspective: 1000px; } .tool-card:hover { transform: translateY(-10px) rotateX(5deg) rotateY(-2deg); box-shadow: 0 20px 40px rgba(0, 200, 150, 0.3), 0 0 30px rgba(0, 200, 150, 0.2); border-color: rgba(0, 200, 150, 0.6); } .tool-card::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: linear-gradient(90deg, #00aaff, #00ff99); z-index: 2; } .tool-header { padding: 20px; background: rgba(20, 25, 40, 0.4); border-bottom: 1px solid rgba(0, 200, 150, 0.2); position: relative; } .tool-title { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; color: #00ccff; margin-bottom: 10px; letter-spacing: 1px; position: relative; z-index: 1; } .tool-description { color: #e0e0ff; line-height: 1.6; font-size: 1rem; min-height: 80px; } .tool-body { padding: 20px; position: relative; z-index: 1; } .tool-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; } .tool-stats { display: flex; gap: 15px; color: #00ff99; font-size: 0.9rem; } .tool-stats i { color: #00ccff; margin-right: 5px; } .github-link { display: flex; align-items: center; color: #00ff99; text-decoration: none; font-size: 0.9rem; transition: all 0.3s ease; } .github-link i { margin-right: 8px; font-size: 1.2rem; } .github-link:hover { color: #00ccff; text-shadow: 0 0 10px rgba(0, 200, 255, 0.6); } .tool-footer { padding: 15px 20px; background: rgba(20, 25, 40, 0.4); border-top: 1px solid rgba(0, 200, 150, 0.2); display: flex; flex-wrap: wrap; gap: 10px; position: relative; z-index: 1; } .tool-tag { background: rgba(0, 150, 255, 0.2); color: #00ff99; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; display: inline-block; } .tool-card .card-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(45deg, rgba(0, 150, 255, 0.05), transparent 70%), linear-gradient(135deg, rgba(0, 200, 150, 0.05), transparent 70%); opacity: 0.3; pointer-events: none; } .tool-card .card-code { position: absolute; top: 0; left: 0; width: 100%; height: 100%; font-family: 'Roboto Mono', monospace; font-size: 12px; color: rgba(0, 255, 150, 0.15); padding: 15px; line-height: 1.4; overflow: hidden; pointer-events: none; } .materials-section { max-width: 1200px; margin: 60px auto 30px; padding: 20px; } .materials-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; margin-top: 30px; } .material-card { background: rgba(10, 12, 20, 0.8); border: 1px solid rgba(0, 200, 150, 0.2); border-radius: 10px; overflow: hidden; transition: all 0.4s ease; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); position: relative; } .material-card:hover { transform: translateY(-8px); box-shadow: 0 15px 35px rgba(0, 200, 150, 0.4); border-color: rgba(0, 200, 150, 0.6); } .material-header { padding: 20px; background: rgba(20, 25, 40, 0.4); position: relative; min-height: 120px; } .material-title { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; color: #00ccff; margin-bottom: 10px; position: relative; z-index: 1; } .material-source { color: #00ff99; font-size: 0.9rem; display: flex; align-items: center; } .material-source i { margin-right: 8px; color: #00ccff; } .material-content { padding: 20px; position: relative; z-index: 1; } .material-excerpt { color: #e0e0ff; line-height: 1.6; margin-bottom: 20px; min-height: 100px; } .material-link { display: inline-flex; align-items: center; color: #00ff99; text-decoration: none; font-size: 0.9rem; transition: all 0.3s ease; } .material-link i { margin-left: 8px; transition: transform 0.3s ease; } .material-link:hover { color: #00ccff; text-shadow: 0 0 10px rgba(0, 200, 255, 0.6); } .material-link:hover i { transform: translateX(5px); } .stats-section { max-width: 1200px; margin: 60px auto; padding: 30px 20px; background: rgba(10, 12, 20, 0.6); border: 1px solid rgba(0, 200, 150, 0.3); border-radius: 10px; text-align: center; } .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; margin-top: 30px; } .stat-item { padding: 20px; position: relative; } .stat-value { font-family: 'Orbitron', sans-serif; font-size: 3rem; color: #00ff99; margin-bottom: 10px; text-shadow: 0 0 15px rgba(0, 255, 150, 0.4); } .stat-label { font-size: 1.1rem; color: #00ccff; } .stat-item::before { content: ""; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 60px; height: 3px; background: linear-gradient(90deg, #00aaff, #00ff99); border-radius: 2px; } .achievements-slider { max-width: 1000px; margin: 60px auto; padding: 20px; position: relative; } .slider-container { overflow: hidden; position: relative; border-radius: 10px; border: 1px solid rgba(0, 200, 150, 0.3); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); } .slider-track { display: flex; transition: transform 0.5s ease; } .slider-item { min-width: 100%; padding: 30px; background: rgba(10, 12, 20, 0.8); text-align: center; } .achievement-icon { font-size: 3rem; color: #00ff99; margin-bottom: 20px; text-shadow: 0 0 15px rgba(0, 255, 150, 0.4); } .achievement-title { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; color: #00ccff; margin-bottom: 15px; } .achievement-description { color: #e0e0ff; line-height: 1.6; max-width: 700px; margin: 0 auto; } .slider-nav { display: flex; justify-content: center; margin-top: 30px; gap: 15px; } .slider-btn { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(30, 35, 50, 0.5); color: #00ccff; font-size: 18px; cursor: pointer; transition: all 0.3s ease; border: 1px solid rgba(0, 200, 150, 0.3); } .slider-btn:hover { background: linear-gradient(45deg, #00aaff, #00ff99); color: #0a0a12; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0, 200, 150, 0.4); } .slider-dots { display: flex; justify-content: center; gap: 10px; margin-top: 20px; } .slider-dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(0, 200, 150, 0.3); cursor: pointer; transition: all 0.3s ease; } .slider-dot.active { background: #00ff99; transform: scale(1.2); box-shadow: 0 0 10px rgba(0, 255, 150, 0.6); } @media (max-width: 768px) { .tools-container, .materials-container, .resources-grid { grid-template-columns: 1fr; } .stat-value { font-size: 2.5rem; } .slider-item { padding: 20px; } } .site-footer { background: rgba(10, 12, 20, 0.9); border-top: 1px solid rgba(0, 200, 150, 0.3); padding: 20px; text-align: center; margin-top: 60px; } .footer-content { max-width: 1200px; margin: 0 auto; } .site-footer p { color: #00ccff; font-size: 0.9rem; margin: 5px 0; text-shadow: 0 0 10px rgba(0, 150, 255, 0.3); } .site-footer p:first-child { font-family: 'Orbitron', sans-serif; letter-spacing: 1px; } .skills-section { max-width: 1400px; margin: 60px auto; padding: 20px; } .skills-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; margin-top: 30px; } .skill-category { background: rgba(10, 12, 20, 0.8); border: 1px solid rgba(0, 200, 150, 0.2); border-radius: 10px; overflow: hidden; transition: all 0.4s ease; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); position: relative; } .skill-category:hover { transform: translateY(-8px); box-shadow: 0 15px 35px rgba(0, 200, 150, 0.4); border-color: rgba(0, 200, 150, 0.6); } .skill-category::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: linear-gradient(90deg, #00aaff, #00ff99); z-index: 2; } .skill-header { padding: 25px; background: rgba(20, 25, 40, 0.4); border-bottom: 1px solid rgba(0, 200, 150, 0.2); display: flex; align-items: center; } .skill-icon { font-size: 2.5rem; color: #00ccff; margin-right: 20px; text-shadow: 0 0 15px rgba(0, 150, 255, 0.4); } .skill-title { font-family: 'Orbitron', sans-serif; font-size: 1.6rem; color: #00ccff; margin: 0; } .skill-content { padding: 20px; } .skill-item { display: flex; margin-bottom: 25px; padding-bottom: 25px; border-bottom: 1px solid rgba(0, 200, 150, 0.1); } .skill-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; } .skill-subicon { font-size: 1.8rem; color: #00ff99; margin-right: 15px; min-width: 40px; text-align: center; } .skill-details h4 { font-size: 1.3rem; color: #00ff99; margin-bottom: 8px; font-family: 'Roboto Mono', monospace; } .skill-details p { color: #e0e0ff; line-height: 1.6; font-size: 1.05rem; } @media (max-width: 1200px) { .sidebar { width: 280px; } .main-content { margin-left: 280px; } } @media (max-width: 1024px) { .sidebar { transform: translateX(-100%); width: 300px; } .sidebar.active { transform: translateX(0); } .main-content { margin-left: 0; width: 100%; } .menu-toggle { display: block; } } @media (max-width: 900px) { .articles-container, .tools-container, .materials-container, .resources-grid, .skills-container { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); } } @media (max-width: 768px) { .title { font-size: 2.5rem; } .subtitle { font-size: 1.1rem; } .articles-container, .tools-container, .materials-container, .resources-grid, .skills-container { grid-template-columns: 1fr; padding: 10px; } .preloader-logo { font-size: 2.5rem; } .header { padding: 30px 15px 15px; } .card-header, .card-body, .card-footer { padding: 20px; } .section-title { font-size: 1.4rem; margin: 25px 0 15px; } .stat-value { font-size: 2.5rem; } .slider-item { padding: 20px; } .achievement-title { font-size: 1.6rem; } .profile { padding: 15px 0; } .avatar { width: 100px; height: 100px; } .username { font-size: 1.5rem; } .contact-item { padding: 8px; font-size: 0.9rem; } } @media (max-width: 600px) { .preloader-logo { font-size: 2.2rem; } .loading-container, .terminal-code { width: 95%; } .hack-btn { padding: 12px 30px; font-size: 1.1rem; } .stats-grid { grid-template-columns: 1fr 1fr; gap: 15px; } .stat-item { padding: 15px; } } @media (max-width: 480px) { .title { font-size: 2rem; line-height: 1.2; } .subtitle { font-size: 0.95rem; } .card-header, .card-body, .card-footer { padding: 15px; } .preloader-logo { font-size: 1.8rem; } .loading-container, .terminal-code { width: 100%; } .username { font-size: 1.5rem; } .user-title { font-size: 1rem; } .contact-item { flex-direction: column; text-align: center; } .contact-icon { margin-right: 0; margin-bottom: 10px; } .section-title { font-size: 1.3rem; margin: 20px 0 12px; } .stat-value { font-size: 2rem; } .achievement-title { font-size: 1.4rem; } .tool-header, .tool-body, .tool-footer, .material-header, .material-content, .skill-header, .skill-content { padding: 15px; } .tool-title, .material-title, .skill-title { font-size: 1.3rem; } .resource-title { font-size: 1.2rem; } .hack-btn { padding: 10px 25px; font-size: 1rem; } .slider-nav { gap: 10px; } .slider-btn { width: 40px; height: 40px; font-size: 16px; } .stats-grid { grid-template-columns: 1fr; } } @media (max-width: 380px) { .title { font-size: 1.8rem; } .preloader-logo { font-size: 1.6rem; } .card-title, .tool-title, .material-title, .skill-title { font-size: 1.2rem; } .resource-title { font-size: 1.1rem; } .section-title { font-size: 1.2rem; } .stat-value { font-size: 1.8rem; } .menu-toggle { top: 15px; left: 15px; width: 40px; height: 40px; } } .mobile-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 99; display: none; } .sidebar.active~.mobile-overlay { display: block; } .hack-btn { white-space: nowrap; } </style> </head> <body> <audio id="startSound" preload="auto"> <source src="wd-ctos_connect_left-text-builds-in-01.mp3" type="audio/mpeg"> </audio> <audio id="completeSound" preload="auto"> <source src="wd-ctos_all_section-text-highlights-blue-dot-01.mp3" type="audio/mpeg"> </audio> <audio id="hoverSound" preload="auto"> <source src="wd-ctos_intro_learn-more-rollover-01.mp3" type="audio/mpeg"> </audio> <audio id="textSound" preload="auto"> <source src="wd-ctos_all_text.mp3" type="audio/mpeg"> </audio> <audio id="navHoverSound" preload="auto"> <source src="wd-ctos_all_top-nav-rollover-01.mp3" type="audio/mpeg"> </audio> <audio id="fadeOutSound" preload="auto"> <source src="wd-ctos_intro_learn-more-click-fade-out-01.mp3" type="audio/mpeg"> </audio> <audio id="ambientSound" preload="auto"> <source src="wd-ctos_all_music-ambient-loop-01.mp3" type="audio/mpeg"> </audio> <audio id="hoverSound2" preload="auto"> <source src="wd-ctos_imagine_braile-button-rollover-01.mp3" type="audio/mpeg"> </audio> <div class="sound-toggle" id="soundToggle"> <i class="fas fa-volume-up"></i> </div> <div class="preloader" id="preloader"> <div class="preloader-logo glitch" data-text="SecDet" id="preloaderLogo">SecDet</div> <div class="loading-container" id="loadingContainer"> <div class="loading-text">Инициализация системы безопасности...</div> <div class="loading-bar"> <div class="progress" id="progress"></div> </div> <div class="loading-percentage" id="percentage">0%</div> </div> <div class="loading-messages" id="loadingMessages">Подключение к сети...</div> <div class="terminal-code" id="terminalCode"> <div>> Загрузка модулей безопасности...</div> <div>> Проверка системных протоколов...</div> <div>> Инициализация интерфейса...</div> <div>> Подключение к базе данных уязвимостей...</div> <div>> Активация системы защиты...</div> </div> <div class="hack-container" id="hackContainer"> <button class="hack-btn" id="hackBtn">ВХОД В СИСТЕМУ</button> </div> </div> <div class="sidebar" id="sidebar"> <div class="profile"> <div class="avatar"> <i class="fas fa-user-secret"></i> </div> <div class="username-container" id="usernameContainer"> <span class="username" id="username">SecDet</span> </div> <div class="user-title-container" id="userTitleContainer"> <span class="user-title" id="userTitle">Security Researcher</span> </div> <div class="social-links"> <a target="_blank" href="https://github.com/Untouchable17" class="social-link"> <i class="fab fa-github"></i> </a> <a target="_blank" href="https://t.me/interpol_eu" class="social-link"> <i class="fa-brands fa-telegram"></i> </a> <a href="mailto:tylerblackout17@gmail.com" class="social-link"> <i class="fas fa-envelope"></i> </a> </div> </div> <div class="section-title">Контакты</div> <div class="contact-info"> <div class="contact-item sidebar-item-hover"> <div class="contact-text">tylerblackout17@gmail.com</div> </div> <div class="contact-item sidebar-item-hover"> <div class="contact-icon"> <i class="fa-brands fa-telegram"></i> </div> <div class="contact-text">@interpol_eu</div> </div> </div> <div class="section-title">Навыки</div> <div class="contact-info"> <div class="contact-item sidebar-item-hover"> <div class="contact-icon"> <i class="fas fa-bug"></i> </div> <div class="contact-text">Web App Pentesting</div> </div> <div class="contact-item sidebar-item-hover"> <div class="contact-icon"> <i class="fas fa-code"></i> </div> <div class="contact-text">Exploit Development</div> </div> <div class="contact-item sidebar-item-hover"> <div class="contact-icon"> <i class="fas fa-terminal"></i> </div> <div class="contact-text">WhiteBox Analysis</div> </div> <div class="contact-item sidebar-item-hover"> <div class="contact-icon"> <i class="fas fa-laptop-code"></i> </div> <div class="contact-text">Multi-Language Dev</div> </div> <div class="contact-item sidebar-item-hover"> <div class="contact-icon"> <i class="fas fa-fish"></i> </div> <div class="contact-text">Phishing Campaigns</div> </div> <div class="contact-item sidebar-item-hover"> <div class="contact-icon"> <i class="fas fa-microscope"></i> </div> <div class="contact-text">Reverse Engineering</div> </div> <div class="contact-item sidebar-item-hover"> <div class="contact-icon"> <i class="fas fa-search"></i> </div> <div class="contact-text">OSINT & Recon</div> </div> </div> <div class="section-title">Дополнительно</div> <div class="contact-info"> <div class="contact-item sidebar-item-hover"> <div class="contact-icon"> <i class="fas fa-trophy"></i> </div> <div class="contact-text">Лучшие инструменты</div> </div> <div class="contact-item sidebar-item-hover"> <div class="contact-icon"> <i class="fas fa-microscope"></i> </div> <div class="contact-text">Авторские посты</div> </div> <div class="contact-item sidebar-item-hover"> <div class="contact-icon"> <i class="fas fa-calendar-alt"></i> </div> <div class="contact-text">6 лет опыта</div> </div> </div> </div> <div class="menu-toggle" id="menu-toggle"> <span></span> <span></span> <span></span> </div> <div class="main-content"> <div class="content" id="content"> <div class="header"> <h1 class="title" id="mainTitle">SecDet Samurai</h1> <p class="subtitle" id="mainSubtitle">Мы не будем менять этот мир - мы перепишем код</p> </div> <div class="skills-section"> <h2 class="section-title">Экспертные навыки</h2> <div class="skills-container"> <div class="skill-category"> <div class="skill-header"> <i class="fas fa-shield-alt skill-icon"></i> <h3 class="skill-title">Пентест внешнего периметра</h3> </div> <div class="skill-content"> <div class="skill-item"> <i class="fas fa-bug skill-subicon"></i> <div class="skill-details"> <h4>Веб-приложения</h4> <p>Полный цикл тестирования: BlackBox, GreyBox, WhiteBox</p> </div> </div> <div class="skill-item"> <i class="fas fa-plug skill-subicon"></i> <div class="skill-details"> <h4>API Security</h4> <p>REST, GraphQL, SOAP - тестирование на уязвимости и неправильные настройки</p> </div> </div> <div class="skill-item"> <i class="fas fa-server skill-subicon"></i> <div class="skill-details"> <h4>Сетевые сервисы</h4> <p>Сканирование внешнего периметра, поиск и эксплуатация уязвимых служб</p> </div> </div> <div class="skill-item"> <i class="fas fa-memory skill-subicon"></i> <div class="skill-details"> <h4>Анализ бинарных файлов</h4> <p>Реверс-инжиниринг исполняемых файлов, библиотек и модулей</p> </div> </div> </div> </div> <div class="skill-category"> <div class="skill-header"> <i class="fas fa-bug skill-icon"></i> <h3 class="skill-title">Разработка эксплойтов и вредоносного ПО</h3> </div> <div class="skill-content"> <div class="skill-item"> <i class="fas fa-file-code skill-subicon"></i> <div class="skill-details"> <h4>PoC разработка</h4> <p>Создание воспроизводимых эксплойтов для демонстрации уязвимостей</p> </div> </div> <div class="skill-item"> <i class="fas fa-robot skill-subicon"></i> <div class="skill-details"> <h4>Автоматизация</h4> <p>Скрипты для автоматического поиска и эксплуатации уязвимостей</p> </div> </div> <div class="skill-item"> <i class="fas fa-tools skill-subicon"></i> <div class="skill-details"> <h4>Кастомизация</h4> <p>Адаптация публичных эксплойтов под специфические окружения</p> </div> </div> <div class="skill-item"> <i class="fas fa-virus skill-subicon"></i> <div class="skill-details"> <h4>Трояны & Вирусы</h4> <p>Разработка, кастомизация и внедрение скрытых вредоносных программ</p> </div> </div> </div> </div> <div class="skill-category"> <div class="skill-header"> <i class="fas fa-star skill-icon"></i> <h3 class="skill-title">Специализированные навыки</h3> </div> <div class="skill-content"> <div class="skill-item"> <i class="fas fa-laptop-code skill-subicon"></i> <div class="skill-details"> <h4>Программирование</h4> <p>Python, JavaScript, C, C++, Java, PHP + фреймворки</p> </div> </div> <div class="skill-item"> <i class="fas fa-fish skill-subicon"></i> <div class="skill-details"> <h4>Фишинговые атаки</h4> <p>Планирование и проведение целевых кампаний, анализ результатов</p> </div> </div> <div class="skill-item"> <i class="fas fa-search skill-subicon"></i> <div class="skill-details"> <h4>OSINT & Разведка</h4> <p>Сбор информации, анализ цифрового следа, подготовка к тестированию</p> </div> </div> <div class="skill-item"> <i class="fas fa-file-contract skill-subicon"></i> <div class="skill-details"> <h4>Макросы & Дропперы</h4> <p>Создание документов с макросами и многоступенчатых загрузчиков</p> </div> </div> </div> </div> </div> </div> <div class="resources-section"> <h2 class="section-title">Мои ресурсы</h2> <div class="resources-grid"> <a href="https://github.com/Untouchable17" target="_blank" style="text-decoration: none;"> <div class="resource-item"> <div class="resource-icon"> <i class="fab fa-github"></i> </div> <h3 class="resource-title">GitHub</h3> <p class="resource-description">Исходный код инструментов и эксплойтов</p> </div> </a> <a href="https://t.me/secdet_team" target="_blank" style="text-decoration: none;"> <div class="resource-item"> <div class="resource-icon"> <i class="fa-brands fa-telegram"></i> </div> <h3 class="resource-title">Telegram</h3> <p class="resource-description">Авторский канал по исследованиям</p> </div> </a> <a href="mailto:tylerblackout17@gmail.com" style="text-decoration: none;"> <div class="resource-item"> <div class="resource-icon"> <i class="fas fa-envelope"></i> </div> <h3 class="resource-title">Gmail</h3> <p class="resource-description">Обратная связь со мной через почту</p> </div> </a> <a href="https://cvefeed.io/vuln/detail/CVE-2011-3389" style="text-decoration: none;" target="_blank"> <div class="resource-item"> <div class="resource-icon"> <i class="fas fa-bug"></i> </div> <h3 class="resource-title">Exploit DB</h3> <p class="resource-description">HTTP-ExploitKit опубликован в CVE-2011-3389</p> </div> </a> </div> </div> <div class="tools-section"> <h2 class="section-title">Мои инструменты</h2> <div class="tools-container"> <div class="tool-card"> <div class="card-bg"></div> <div class="card-code">> root@secdet:~$ scan -target * --vuln sql <br>> SQLi vulnerabilities detected: 12 <br>> Critical: 5, High: 4, Medium: 3 </div> <div class="tool-header"> <h3 class="tool-title">Android IMEI Changer</h3> <p class="tool-description">Программа для изменения идентификаторов IMEI под архитектурой ARM на базе Android устройств</p> </div> <div class="tool-body"> <div class="tool-meta"> <div class="tool-stats"> <div> <i class="fas fa-star"></i> 123 </div> <div> <i class="fas fa-code-branch"></i> 25 </div> </div> <a target="_blank" href="https://github.com/Untouchable17/Android-IMEI-Changer" class="github-link"> <i class="fab fa-github"></i> GitHub </a> </div> </div> <div class="tool-footer"> <span class="tool-tag">#IMEI</span> <span class="tool-tag">#Security</span> <span class="tool-tag">#Android</span> </div> </div> <div class="tool-card"> <div class="card-bg"></div> <div class="card-code">> root@secdet:~$ xss-scan --url target.com <br>> XSS vectors tested: 87 <br>> Vulnerabilities found: 9 <br>> DOM-based: 3, Reflected: 6 </div> <div class="tool-header"> <h3 class="tool-title">HTTP ExploitKit</h3> <p class="tool-description">Репозиторий содержит коллекцию скриптов, предназначенных для использования различных уязвимостей в HTTP и связанных с ним протоколах</p> </div> <div class="tool-body"> <div class="tool-meta"> <div class="tool-stats"> <div> <i class="fas fa-star"></i> 21 </div> <div> <i class="fas fa-code-branch"></i> 1 </div> </div> <a target="_blank" href="https://github.com/Untouchable17/HTTP-ExploitKit" class="github-link"> <i class="fab fa-github"></i> GitHub </a> </div> </div> <div class="tool-footer"> <span class="tool-tag">#HTTP</span> <span class="tool-tag">#Exploit</span> <span class="tool-tag">#Python</span> </div> </div> <div class="tool-card"> <div class="card-bg"></div> <div class="card-code">> root@secdet:~$ api-scan -e prod-api <br>> Endpoints: 142 <br>> Vulnerabilities: 17 <br>> Auth bypass: 2, IDOR: 5 </div> <div class="tool-header"> <h3 class="tool-title">JWT-CrackX</h3> <p class="tool-description">Инструмент для анализа уязвимостей в токенах JWT. Расширенный набор инструментов для проверки уязвимостей и эксплуатации JWT</p> </div> <div class="tool-body"> <div class="tool-meta"> <div class="tool-stats"> <div> <i class="fas fa-star"></i> 36 </div> <div> <i class="fas fa-code-branch"></i> 4 </div> </div> <a target="_blank" href="https://github.com/Untouchable17/JWT-CrackX" class="github-link"> <i class="fab fa-github"></i> GitHub </a> </div> </div> <div class="tool-footer"> <span class="tool-tag">#API</span> <span class="tool-tag">#Security</span> <span class="tool-tag">#Go</span> </div> </div> <div class="tool-card"> <div class="card-bg"></div> <div class="card-code">> root@secdet:~$ api-scan -e prod-api <br>> Endpoints: 142 <br>> Vulnerabilities: 17 <br>> Auth bypass: 2, IDOR: 5 </div> <div class="tool-header"> <h3 class="tool-title">Windows DLL & Shellcode Injection</h3> <p class="tool-description">Инструменты для реализации процессов Windows, включая внедрение библиотек DLL и шелл-кода с шифрованием XOR. Включает проверку архитектуры и обработку ошибок</p> </div> <div class="tool-body"> <div class="tool-meta"> <div class="tool-stats"> <div> <i class="fas fa-star"></i> 3 </div> <div> <i class="fas fa-code-branch"></i> 0 </div> </div> <a target="_blank" href="https://github.com/Untouchable17/Windows-DLL-Shellcode-Injection-Toolkit" class="github-link"> <i class="fab fa-github"></i> GitHub </a> </div> </div> <div class="tool-footer"> <span class="tool-tag">#ShellCode</span> <span class="tool-tag">#DllInjection</span> <span class="tool-tag">#Windows</span> </div> </div> <div class="tool-card"> <div class="card-bg"></div> <div class="card-code">> root@secdet:~$ api-scan -e prod-api <br>> Endpoints: 142 <br>> Vulnerabilities: 17 <br>> Auth bypass: 2, IDOR: 5 </div> <div class="tool-header"> <h3 class="tool-title">ShadowDrop-Framework</h3> <p class="tool-description">Расширенный набор инструментов для создания вредоносных нагрузок, включая уклонения и обфускацию, для авторизованной Red Team операции</p> </div> <div class="tool-body"> <div class="tool-meta"> <div class="tool-stats"> <div> <i class="fas fa-star"></i> 6 </div> <div> <i class="fas fa-code-branch"></i> 5 </div> </div> <a target="_blank" href="https://github.com/Untouchable17/ShadowDrop-Framework" class="github-link"> <i class="fab fa-github"></i> GitHub </a> </div> </div> <div class="tool-footer"> <span class="tool-tag">#С2</span> <span class="tool-tag">#Malware</span> <span class="tool-tag">#Evasion</span> </div> </div> <div class="tool-card"> <div class="card-bg"></div> <div class="card-code">> root@secdet:~$ api-scan -e prod-api <br>> Endpoints: 142 <br>> Vulnerabilities: 17 <br>> Auth bypass: 2, IDOR: 5 </div> <div class="tool-header"> <h3 class="tool-title">Reverse TCP Shell</h3> <p class="tool-description">Инструмент для первичного закрепления в системах на базе Windows с помощью обратной оболочки, написанный на языке С++</p> </div> <div class="tool-body"> <div class="tool-meta"> <div class="tool-stats"> <div> <i class="fas fa-star"></i> 16 </div> <div> <i class="fas fa-code-branch"></i> 4 </div> </div> <a target="_blank" href="https://github.com/Untouchable17/Reverse-TCP-Shell" class="github-link"> <i class="fab fa-github"></i> GitHub </a> </div> </div> <div class="tool-footer"> <span class="tool-tag">#API</span> <span class="tool-tag">#Security</span> <span class="tool-tag">#Go</span> </div> </div> <div class="tool-card"> <div class="card-bg"></div> <div class="card-code">> root@secdet:~$ api-scan -e prod-api <br>> Endpoints: 142 <br>> Vulnerabilities: 17 <br>> Auth bypass: 2, IDOR: 5 </div> <div class="tool-header"> <h3 class="tool-title">Meta-DataWipe</h3> <p class="tool-description">Библиотека Python, которая позволяет безопасно считывать и удалять метаданные из различных типов файлов, включая изображения, видео, аудио и документы+</p> </div> <div class="tool-body"> <div class="tool-meta"> <div class="tool-stats"> <div> <i class="fas fa-star"></i> 7 </div> <div> <i class="fas fa-code-branch"></i> 0 </div> </div> <a target="_blank" href="https://github.com/Untouchable17/Meta-DataWipe" class="github-link"> <i class="fab fa-github"></i> GitHub </a> </div> </div> <div class="tool-footer"> <span class="tool-tag">#API</span> <span class="tool-tag">#Security</span> <span class="tool-tag">#Go</span> </div> </div> <div class="tool-card"> <div class="card-bg"></div> <div class="card-code">> root@secdet:~$ api-scan -e prod-api <br>> Endpoints: 142 <br>> Vulnerabilities: 17 <br>> Auth bypass: 2, IDOR: 5 </div> <div class="tool-header"> <h3 class="tool-title">Cam Hackers</h3> <p class="tool-description">Сканирует открытые IP-адреса видеокамер с помощью скрипта и выцепляет хосты для обработки. Запуск скрипта полностью автоматизирован</p> </div> <div class="tool-body"> <div class="tool-meta"> <div class="tool-stats"> <div> <i class="fas fa-star"></i> 3 </div> <div> <i class="fas fa-code-branch"></i> 0 </div> </div> <a target="_blank" href="https://github.com/Untouchable17/Cam-Hackers" class="github-link"> <i class="fab fa-github"></i> GitHub </a> </div> </div> <div class="tool-footer"> <span class="tool-tag">#API</span> <span class="tool-tag">#Security</span> <span class="tool-tag">#Go</span> </div> </div> <div class="tool-card"> <div class="card-bg"></div> <div class="card-code">> root@secdet:~$ api-scan -e prod-api <br>> Endpoints: 142 <br>> Vulnerabilities: 17 <br>> Auth bypass: 2, IDOR: 5 </div> <div class="tool-header"> <h3 class="tool-title">Stealer: Cookies & Tokens</h3> <p class="tool-description">Стиллер для кражи конф.данных: куков и токенов с различных браузеров и сервисов, включая сайты, боты, приложения</p> </div> <div class="tool-body"> <div class="tool-meta"> <div class="tool-stats"> <div> <i class="fas fa-star"></i> 7 </div> <div> <i class="fas fa-code-branch"></i> 0 </div> </div> <a target="_blank" href="https://github.com/Untouchable17/Stealer-Cookies-Tokens" class="github-link"> <i class="fab fa-github"></i> GitHub </a> </div> </div> <div class="tool-footer"> <span class="tool-tag">#API</span> <span class="tool-tag">#Security</span> <span class="tool-tag">#Go</span> </div> </div> </div> </div> <div class="materials-section"> <h2 class="section-title">Мои материалы</h2> <div class="materials-container"> <div class="material-card"> <div class="material-header"> <h3 class="material-title">Active Directory for Red Teams 1</h3> <div class="material-source"> <i class="fa-brands fa-telegram"></i> Telegram </div> </div> <div class="material-content"> <p class="material-excerpt">Рад представить вам первую статью из серии "Active Directory в Red Teaming". В этом материале я хочу ознакомить вас с основными принципами работы Active Directory и заинтересовать в дальнейшем изучении этой системы.</p> <a target="_blank" href="https://telegra.ph/Active-Directory-for-Red-Teams-1-06-05" class="material-link"> Читать статью <i class="fas fa-arrow-right"></i> </a> </div> </div> <div class="material-card"> <div class="material-header"> <h3 class="material-title">Active Directory for Red Teams: Offensive PowerShell</h3> <div class="material-source"> <i class="fa-brands fa-telegram"></i> Telegram </div> </div> <div class="material-content"> <p class="material-excerpt">Во второй части разбираемся как эффективно управлять Active Directory с помощью перечисления объектов групповой политики, ACL и трастов. Ознакомимся с использованием PowerView и BloodHound для аудита и анализа безопасности. </p> <a target="_blank" href="https://telegra.ph/Active-Directory-for-Red-Teams-Offensive-PowerShell-06-07" class="material-link"> Читать статью <i class="fas fa-arrow-right"></i> </a> </div> </div> <div class="material-card"> <div class="material-header"> <h3 class="material-title">Active Directory-Domain Privilege Escalation</h3> <div class="material-source"> <i class="fa-brands fa-telegram"></i> Telegram </div> </div> <div class="material-content"> <p class="material-excerpt">Основные принципы повышения привилегий в домене Active-Directory с помощью Kerberos, AS-REP, Set-SPN и делегирование протоколом Kerberos</p> <a target="_blank" href="https://telegra.ph/Active-Directory---Domain-Privilege-Escalation-07-21" class="material-link"> Читать статью <i class="fas fa-arrow-right"></i> </a> </div> </div> <div class="material-card"> <div class="material-header"> <h3 class="material-title">Криптографический Апокалипсис: Эксплуатация Протоколов SSL/TLS</h3> <div class="material-source"> <i class="fa-brands fa-telegram"></i> Telegram </div> </div> <div class="material-content"> <p class="material-excerpt">Руководство по практической эксплуатации SSL & TLS протоколов</p> <a target="_blank" href="https://telegra.ph/Kriptograficheskij-Apokalipsis-EHkspluataciya-Protokolov-SSLTLS-05-12" class="material-link"> Читать статью <i class="fas fa-arrow-right"></i> </a> </div> </div> <div class="material-card"> <div class="material-header"> <h3 class="material-title">Эксплуатация заголовков: HTTP и его скрытые угрозы</h3> <div class="material-source"> <i class="fa-brands fa-telegram"></i> Telegram </div> </div> <div class="material-content"> <p class="material-excerpt">Руководство по практической эксплуатации заголовков HTTP протокола</p> <a target="_blank" href="https://telegra.ph/EHkspluataciya-zagolovkov-HTTP-i-ego-skrytye-ugrozy-05-14" class="material-link"> Читать статью <i class="fas fa-arrow-right"></i> </a> </div> </div> <div class="material-card"> <div class="material-header"> <h3 class="material-title">Кошмарим соседей: Взлом Wi-Fi сетей WPA/WPA2 PSK</h3> <div class="material-source"> <i class="fa-brands fa-telegram"></i> Telegram </div> </div> <div class="material-content"> <p class="material-excerpt">Руководство по практической эксплуатации WPA/WPA2 PSK протоколов</p> <a target="_blank" href="https://telegra.ph/Koshmarim-sosedej-Vzlom-Wi-Fi-setej-WPAWPA2-PSK-08-10" class="material-link"> Читать статью <i class="fas fa-arrow-right"></i> </a> </div> </div> <div class="material-card"> <div class="material-header"> <h3 class="material-title">Оружие Хакера: Изучаем Методы Сетевых Атак | Часть I</h3> <div class="material-source"> <i class="fa-brands fa-telegram"></i> Telegram </div> </div> <div class="material-content"> <p class="material-excerpt">В этой статье вы узнаете о наиболее популярных типах кибератак, совершаемых хакерами. Вы также узнаете, как злоумышленники используют преимущества различных сетевых протоколов</p> <a target="_blank" href="https://telegra.ph/Oruzhie-Hakera-Izuchaem-Metody-Setevyh-Atak--CHast-I-09-23" class="material-link"> Читать статью <i class="fas fa-arrow-right"></i> </a> </div> </div> <div class="material-card"> <div class="material-header"> <h3 class="material-title">Оружие Хакера: Изучаем Методы Сетевых Атак | Часть II</h3> <div class="material-source"> <i class="fa-brands fa-telegram"></i> Telegram </div> </div> <div class="material-content"> <p class="material-excerpt">Продолжение первой части, где рассказываются про атаки на конечные точки, веб-уязвимости, переполнение буфера и методы обхода/защиты.</p> <a target="_blank" href="https://telegra.ph/Oruzhie-Hakera-Izuchaem-Metody-Setevyh-Atak--CHast-II-09-23" class="material-link"> Читать статью <i class="fas fa-arrow-right"></i> </a> </div> </div> <div class="material-card"> <div class="material-header"> <h3 class="material-title">Оружие Хакера: Изучаем Методы Сетевых Атак | Часть III</h3> <div class="material-source"> <i class="fa-brands fa-telegram"></i> Telegram </div> </div> <div class="material-content"> <p class="material-excerpt">В этой статье вы подробно изучите атаки социальной инженерии, которые являются одними из самых простых и вместе с тем наиболее эффективными методами, которыми хакеры пользуются для получения доступа к системам жертвы</p> <a href="https://telegra.ph/Oruzhie-Hakera-Izuchaem-Metody-Setevyh-Atak--CHast-III-09-23" class="material-link"> Читать статью <i class="fas fa-arrow-right"></i> </a> </div> </div> </div> </div> <footer class="site-footer"> <div class="footer-content"> <p>© 2025 SecDet Samurai. Все права защищены.</p> <p>Мы не будем менять этот мир - мы перепишем код</p> </div> </footer> </div> </div> <script> document.addEventListener('DOMContentLoaded', function() { const progress = document.getElementById('progress'); const percentage = document.getElementById('percentage'); const loadingMessages = document.getElementById('loadingMessages'); const loadingContainer = document.getElementById('loadingContainer'); const terminalCode = document.getElementById('terminalCode'); const preloader = document.getElementById('preloader'); const preloaderLogo = document.getElementById('preloaderLogo'); const content = document.getElementById('content'); const menuToggle = document.getElementById('menu-toggle'); const sidebar = document.getElementById('sidebar'); const soundToggle = document.getElementById('soundToggle'); const hackContainer = document.getElementById('hackContainer'); const hackBtn = document.getElementById('hackBtn'); const mainTitle = document.getElementById('mainTitle'); const mainSubtitle = document.getElementById('mainSubtitle'); const username = document.getElementById('username'); const userTitle = document.getElementById('userTitle'); const usernameContainer = document.getElementById('usernameContainer'); const userTitleContainer = document.getElementById('userTitleContainer'); const ambientSound = document.getElementById('ambientSound'); const hoverSound2 = document.getElementById('hoverSound2'); const startSound = document.getElementById('startSound'); const completeSound = document.getElementById('completeSound'); const hoverSound = document.getElementById('hoverSound'); const clickSound = document.getElementById('clickSound'); const textSound = document.getElementById('textSound'); const navHoverSound = document.getElementById('navHoverSound'); const fadeOutSound = document.getElementById('fadeOutSound'); let soundEnabled = true; let startSoundPlayed = false; const startTime = Date.now(); const LOADING_TIMEOUT = 10000; function playSound(sound) { if (!soundEnabled || !sound) return; try { sound.currentTime = 0; sound.play().catch(e => console.warn("Audio error:", e)); } catch (e) { console.error("Sound playback failed:", e); } } soundToggle.addEventListener('click', function() { soundEnabled = !soundEnabled; if (soundEnabled) { this.innerHTML = ' < i class = "fas fa-volume-up" > < /i>'; this.classList.remove('muted'); } else { this.innerHTML = ' < i class = "fas fa-volume-mute" > < /i>'; this.classList.add('muted'); } }); if (soundEnabled && !startSoundPlayed) { playSound(startSound); startSoundPlayed = true; } const messages = [ "Анализ сетевой инфраструктуры...", "Сканирование открытых портов...", "Проверка системных журналов...", "Инициализация криптографических модулей...", "Загрузка базы эксплойтов...", "Проверка целостности системы...", "Активация протоколов безопасности...", "Подготовка интерфейса пользователя..." ]; let width = 0; let messageIndex = 0; function frame() { if (Date.now() - startTime > LOADING_TIMEOUT) { width = 100; } if (width >= 100) { clearInterval(interval); playSound(completeSound); loadingContainer.style.opacity = '0'; terminalCode.style.opacity = '0'; setTimeout(() => { loadingContainer.style.display = 'none'; terminalCode.style.display = 'none'; loadingMessages.textContent = "Для продолжения нажмите на кнопку"; loadingMessages.style.fontSize = '1.2rem'; loadingMessages.style.color = '#00ff99'; loadingMessages.style.textShadow = '0 0 10px rgba(0, 255, 150, 0.4)'; hackContainer.style.display = 'flex'; setTimeout(() => { hackContainer.style.opacity = '1'; }, 10); }, 500); } else { width += Math.random() * 4 + 1; if (width > 100) width = 100; progress.style.width = width + '%'; percentage.textContent = Math.floor(width) + '%'; if (width >= messageIndex * 12.5 && messageIndex < messages.length) { loadingMessages.textContent = messages[messageIndex]; messageIndex++; } } } let interval = setInterval(frame, 150); hackBtn.addEventListener('mouseenter', function() { playSound(hoverSound); this.style.transform = 'scale(1.05)'; this.style.boxShadow = '0 0 25px rgba(0, 255, 150, 0.6)'; }); hackBtn.addEventListener('mouseleave', function() { this.style.transform = 'scale(1)'; this.style.boxShadow = '0 0 15px rgba(0, 255, 150, 0.3)'; }); hackBtn.addEventListener('click', function() { playSound(clickSound); playSound(ambientSound); loadingMessages.style.opacity = '0'; hackContainer.style.opacity = '0'; setTimeout(() => { playSound(fadeOutSound); preloaderLogo.classList.add('preloader-logo-fade'); setTimeout(() => { preloader.style.opacity = '0'; preloader.style.visibility = 'hidden'; content.style.display = 'block'; content.style.opacity = '1'; setTimeout(() => { animateText(mainTitle, textSound); }, 100); }, 1000); }, 500); }); function animateText(element, sound) { const originalText = element.textContent; element.textContent = ''; element.classList.add('typing-text'); let i = 0; const typeInterval = setInterval(() => { if (i < originalText.length) { element.textContent += originalText.charAt(i); if (soundEnabled && i % 3 === 0) playSound(sound); i++; } else { clearInterval(typeInterval); element.classList.remove('typing-text'); sound.pause(); } }, 50); } function addHoverSoundToElements(elements) { elements.forEach(item => { item.addEventListener('mouseenter', function() { playSound(hoverSound2); }); }); } const hoverElements = [ ...document.querySelectorAll('.resource-item'), ...document.querySelectorAll('.tool-card'), ...document.querySelectorAll('.skill-category'), ...document.querySelectorAll('.material-card'), ...document.querySelectorAll('.slider-btn'), ...document.querySelectorAll('.slider-dot'), ...document.querySelectorAll('.sidebar-item-hover, .social-link') ]; addHoverSoundToElements(hoverElements); function createCharSpans(element) { const text = element.textContent; element.innerHTML = ''; for (let i = 0; i < text.length; i++) { const charSpan = document.createElement('span'); charSpan.className = 'char'; charSpan.textContent = text[i]; charSpan.style.display = 'inline-block'; charSpan.style.transition = 'transform 0.3s ease, color 0.3s ease'; element.appendChild(charSpan); } } function animateChars(element) { const chars = element.querySelectorAll('.char'); chars.forEach((char, index) => { setTimeout(() => { char.style.transform = 'translateY(-5px)'; char.style.color = '#00ff99'; char.style.textShadow = '0 0 10px rgba(0, 255, 150, 0.6)'; setTimeout(() => { char.style.transform = 'translateY(0)'; char.style.color = ''; char.style.textShadow = ''; }, 300); }, index * 50); }); } createCharSpans(username); createCharSpans(userTitle); usernameContainer.addEventListener('mouseenter', function() { playSound(navHoverSound); animateChars(username); }); userTitleContainer.addEventListener('mouseenter', function() { playSound(navHoverSound); animateChars(userTitle); }); menuToggle.addEventListener('click', function() { sidebar.classList.toggle('active'); }); function createMatrixEffect() { const container = document.createElement('div'); container.className = 'matrix-code'; document.body.appendChild(container); const chars = "01!@#$%^&*()_+-=[]{}|;:,.<>?abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"; for (let i = 0; i < 30; i++) { const row = document.createElement('div'); row.className = 'matrix-row'; for (let j = 0; j < 50; j++) { const char = document.createElement('span'); char.textContent = chars.charAt(Math.floor(Math.random() * chars.length)); char.style.opacity = Math.random() * 0.5 + 0.1; char.style.animationDelay = `${Math.random() * 2}s`; row.appendChild(char); } container.appendChild(row); } } createMatrixEffect(); function animateValue(element, start, end, duration) { let startTimestamp = null; const step = (timestamp) => { if (!startTimestamp) startTimestamp = timestamp; const progress = Math.min((timestamp - startTimestamp) / duration, 1); const value = Math.floor(progress * (end - start) + start); element.textContent = value.toLocaleString(); if (progress < 1) { window.requestAnimationFrame(step); } }; window.requestAnimationFrame(step); } const observer = new IntersectionObserver((entries) => { entries.forEach(entry => { if (entry.isIntersecting) { animateValue(document.getElementById('bugCount'), 0, 4, 2000); animateValue(document.getElementById('bountyCount'), 0, 2, 2500); animateValue(document.getElementById('toolCount'), 0, 20, 1500); animateValue(document.getElementById('researchCount'), 0, 24, 1800); observer.unobserve(entry.target); } }); }, { threshold: 0.5 }); observer.observe(document.querySelector('.stats-section')); const sliderTrack = document.getElementById('sliderTrack'); const sliderItems = document.querySelectorAll('.slider-item'); const sliderDotsContainer = document.getElementById('sliderDots'); const prevBtn = document.getElementById('prevBtn'); const nextBtn = document.getElementById('nextBtn'); let currentIndex = 0; let sliderDots = []; sliderItems.forEach((_, index) => { const dot = document.createElement('div'); dot.classList.add('slider-dot'); if (index === 0) dot.classList.add('active'); dot.addEventListener('click', () => { goToSlide(index); }); sliderDotsContainer.appendChild(dot); sliderDots.push(dot); }); function goToSlide(index) { currentIndex = index; sliderTrack.style.transform = `translateX(-${currentIndex * 100}%)`; sliderDots.forEach((dot, i) => { dot.classList.toggle('active', i === currentIndex); }); } nextBtn.addEventListener('click', () => { currentIndex = (currentIndex + 1) % sliderItems.length; goToSlide(currentIndex); }); prevBtn.addEventListener('click', () => { currentIndex = (currentIndex - 1 + sliderItems.length) % sliderItems.length; goToSlide(currentIndex); }); setInterval(() => { nextBtn.click(); }, 5000); document.getElementById('mobileOverlay').addEventListener('click', function() { sidebar.classList.remove('active'); this.style.display = 'none'; }); if ('ontouchstart' in window) { document.querySelectorAll('.card, .tool-card, .material-card').forEach(card => { card.style.cursor = 'pointer'; }); } }); </script> </body></html>
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SecDet BugBounty</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@300;400;700&display=swap" rel="stylesheet">
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Roboto Mono', monospace;
+                background: linear-gradient(135deg, #0a0a12, #0d0d15);
+                color: #e0e0ff;
+                min-height: 100vh;
+                overflow-x: hidden;
+                position: relative;
+                display: flex;
+            }
+
+            body::before {
+                content: "";
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: radial-gradient(circle at 10% 20%, rgba(0, 150, 255, 0.05) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(0, 200, 150, 0.05) 0%, transparent 40%), repeating-linear-gradient(45deg, rgba(20, 25, 40, 0.1) 0px, rgba(20, 25, 40, 0.1) 1px, transparent 1px, transparent 11px), repeating-linear-gradient(135deg, rgba(20, 25, 40, 0.1) 0px, rgba(20, 25, 40, 0.1) 1px, transparent 1px, transparent 11px);
+                z-index: -2;
+                pointer-events: none;
+            }
+
+            .sidebar {
+                width: 320px;
+                background: rgba(10, 12, 20, 0.95);
+                border-right: 1px solid rgba(0, 200, 150, 0.3);
+                padding: 30px 20px;
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                overflow-y: auto;
+                z-index: 100;
+                box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+                transition: transform 0.4s ease;
+            }
+
+            .sidebar::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            .sidebar::-webkit-scrollbar-track {
+                background: rgba(20, 25, 40, 0.3);
+                border-radius: 4px;
+            }
+
+            .sidebar::-webkit-scrollbar-thumb {
+                background: linear-gradient(to bottom, #00ccff, #00ff99);
+                border-radius: 4px;
+                border: 1px solid rgba(0, 200, 150, 0.5);
+            }
+
+            .sidebar::-webkit-scrollbar-thumb:hover {
+                background: linear-gradient(to bottom, #00aaff, #00dd99);
+            }
+
+            .profile {
+                text-align: center;
+                padding-bottom: 25px;
+                margin-bottom: 25px;
+                border-bottom: 1px solid rgba(0, 200, 150, 0.2);
+            }
+
+            .avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid #00ccff;
+    margin: 0 auto 20px;
+    overflow: hidden;
+    position: relative;
+    background: linear-gradient(45deg, #0a0a1a, #0d0d20);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+            .username {
+                font-family: 'Orbitron', sans-serif;
+                font-size: 1.8rem;
+                color: #00ccff;
+                margin-bottom: 10px;
+                text-shadow: 0 0 10px rgba(0, 150, 255, 0.4);
+            }
+
+            .user-title {
+                color: #00ff99;
+                font-size: 1.1rem;
+                margin-bottom: 20px;
+            }
+
+            .contact-info {
+                margin-bottom: 30px;
+            }
+
+            .contact-item {
+                display: flex;
+                align-items: center;
+                margin-bottom: 15px;
+                padding: 10px;
+                background: rgba(20, 25, 40, 0.4);
+                border-radius: 5px;
+                transition: all 0.3s ease;
+                border-left: 3px solid #00ccff;
+            }
+
+            .contact-item:hover {
+                background: rgba(30, 35, 50, 0.6);
+                transform: translateX(5px);
+            }
+
+            .contact-icon {
+                width: 36px;
+                height: 36px;
+                background: rgba(0, 150, 255, 0.2);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 15px;
+                color: #00ccff;
+                font-size: 16px;
+            }
+
+            .contact-text {
+                color: #e0e0ff;
+                font-size: 0.95rem;
+            }
+
+            .social-links {
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+                margin-top: 20px;
+            }
+
+            .social-link {
+                width: 42px;
+                height: 42px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(30, 35, 50, 0.5);
+                color: #00ccff;
+                font-size: 18px;
+                transition: all 0.3s ease;
+                border: 1px solid rgba(0, 200, 150, 0.3);
+                text-decoration: none;
+            }
+
+            .social-link:hover {
+                background: linear-gradient(45deg, #00aaff, #00ff99);
+                color: #0a0a12;
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0, 200, 150, 0.4);
+            }
+
+            .preloader {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, #0a0a12, #0d0d15);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+                transition: opacity 0.8s, visibility 0.8s;
+            }
+
+            .preloader-logo {
+                font-family: 'Orbitron', sans-serif;
+                font-size: 3.5rem;
+                font-weight: 900;
+                text-transform: uppercase;
+                margin-bottom: 2rem;
+                background: linear-gradient(45deg, #00aaff, #00ff99);
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                text-shadow: 0 0 15px rgba(0, 150, 255, 0.4);
+                letter-spacing: 4px;
+            }
+
+            .loading-container {
+                width: 80%;
+                max-width: 500px;
+                background: rgba(10, 12, 20, 0.7);
+                border: 1px solid rgba(0, 200, 150, 0.3);
+                border-radius: 5px;
+                padding: 15px;
+                box-shadow: 0 0 20px rgba(0, 200, 150, 0.2);
+                margin-bottom: 30px;
+            }
+
+            .loading-text {
+                font-size: 1.1rem;
+                text-align: center;
+                margin-bottom: 15px;
+                color: #00ccff;
+                font-weight: 300;
+            }
+
+            .loading-bar {
+                height: 8px;
+                background: rgba(30, 35, 50, 0.8);
+                border-radius: 4px;
+                overflow: hidden;
+                position: relative;
+            }
+
+            .progress {
+                position: absolute;
+                left: 0;
+                top: 0;
+                height: 100%;
+                width: 0%;
+                background: linear-gradient(90deg, #00aaff, #00ff99);
+                border-radius: 4px;
+                transition: width 0.5s ease;
+                box-shadow: 0 0 10px rgba(0, 200, 150, 0.6);
+            }
+
+            .loading-percentage {
+                text-align: center;
+                margin-top: 10px;
+                font-size: 1rem;
+                color: #00ff99;
+            }
+
+            .loading-messages {
+                margin-top: 20px;
+                text-align: center;
+                color: #00ccff;
+                height: 20px;
+                font-size: 0.9rem;
+            }
+
+            .terminal-code {
+                width: 80%;
+                max-width: 500px;
+                margin-top: 30px;
+                background: rgba(0, 0, 0, 0.2);
+                border: 1px solid rgba(0, 200, 150, 0.2);
+                border-radius: 5px;
+                padding: 15px;
+                font-family: 'Roboto Mono', monospace;
+                font-size: 0.8rem;
+                color: #00ff99;
+                max-height: 200px;
+                overflow-y: auto;
+            }
+
+            .terminal-code div {
+                animation: typing 0.5s steps(40, end);
+            }
+
+            .terminal-code div:nth-child(2) {
+                animation-delay: 0.5s;
+            }
+
+            .terminal-code div:nth-child(3) {
+                animation-delay: 1.5s;
+            }
+
+            .terminal-code div:nth-child(4) {
+                animation-delay: 2.5s;
+            }
+
+            .terminal-code div:nth-child(5) {
+                animation-delay: 3.5s;
+            }
+
+            @keyframes typing {
+                from {
+                    width: 0;
+                    opacity: 0;
+                }
+
+                to {
+                    width: 100%;
+                    opacity: 1;
+                }
+            }
+
+            .main-content {
+                flex: 1;
+                margin-left: 280px;
+                padding: 20px;
+                position: relative;
+            }
+
+            .content {
+                display: none;
+                opacity: 0;
+                transition: opacity 1s ease-in;
+            }
+
+            .header {
+                text-align: center;
+                padding: 40px 20px 20px;
+                margin-bottom: 40px;
+                position: relative;
+            }
+
+            .header::after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 200px;
+                height: 4px;
+                background: linear-gradient(90deg, transparent, #00aaff, #00ff99, transparent);
+                border-radius: 2px;
+            }
+
+            .title {
+                font-family: 'Orbitron', sans-serif;
+                font-size: 4rem;
+                font-weight: 900;
+                text-transform: uppercase;
+                background: linear-gradient(45deg, #00aaff, #00ff99);
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                text-shadow: 0 0 20px rgba(0, 150, 255, 0.4);
+                letter-spacing: 4px;
+                margin-bottom: 15px;
+                position: relative;
+                display: inline-block;
+            }
+
+            .title::after {
+                content: "";
+                position: absolute;
+                bottom: -10px;
+                left: 0;
+                width: 100%;
+                height: 3px;
+                background: linear-gradient(90deg, #00aaff, #00ff99);
+                border-radius: 3px;
+            }
+
+            .subtitle {
+                font-size: 1.4rem;
+                color: #00ccff;
+                font-weight: 300;
+                max-width: 700px;
+                margin: 0 auto;
+                line-height: 1.6;
+            }
+
+            .articles-container {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+                gap: 30px;
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+
+            .card {
+                background: rgba(10, 12, 20, 0.8);
+                border: 1px solid rgba(0, 200, 150, 0.2);
+                border-radius: 10px;
+                overflow: hidden;
+                transition: all 0.4s ease;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                position: relative;
+                transform-style: preserve-3d;
+                perspective: 1000px;
+            }
+
+            .card:hover {
+                transform: translateY(-10px) rotateX(5deg) rotateY(-2deg);
+                box-shadow: 0 20px 40px rgba(0, 200, 150, 0.3), 0 0 30px rgba(0, 200, 150, 0.2);
+                border-color: rgba(0, 200, 150, 0.6);
+            }
+
+            .card::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 5px;
+                background: linear-gradient(90deg, #00aaff, #00ff99);
+                z-index: 2;
+            }
+
+            .card-header {
+                padding: 25px;
+                background: rgba(20, 25, 40, 0.4);
+                border-bottom: 1px solid rgba(0, 200, 150, 0.2);
+                position: relative;
+            }
+
+            .card-title {
+                font-family: 'Orbitron', sans-serif;
+                font-size: 1.7rem;
+                color: #00ccff;
+                margin-bottom: 15px;
+                letter-spacing: 1px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .card-meta {
+                display: flex;
+                font-size: 0.85rem;
+                color: #00ff99;
+                position: relative;
+                z-index: 1;
+            }
+
+            .card-meta div {
+                margin-right: 15px;
+                display: flex;
+                align-items: center;
+            }
+
+            .card-meta i {
+                margin-right: 5px;
+                color: #00ccff;
+            }
+
+            .card-body {
+                padding: 25px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .card-description {
+                color: #e0e0ff;
+                line-height: 1.7;
+                font-size: 1.05rem;
+            }
+
+            .card-footer {
+                padding: 20px 25px;
+                background: rgba(20, 25, 40, 0.4);
+                border-top: 1px solid rgba(0, 200, 150, 0.2);
+                display: flex;
+                justify-content: space-between;
+                position: relative;
+                z-index: 1;
+            }
+
+            .tag {
+                background: rgba(0, 150, 255, 0.2);
+                color: #00ff99;
+                padding: 5px 12px;
+                border-radius: 20px;
+                font-size: 0.8rem;
+                display: inline-block;
+            }
+
+            .read-more {
+                background: linear-gradient(45deg, #00aaff, #00ff99);
+                color: #0a0a12;
+                border: none;
+                padding: 8px 20px;
+                border-radius: 20px;
+                font-family: 'Roboto Mono', monospace;
+                font-size: 0.9rem;
+                cursor: pointer;
+                transition: transform 0.2s, box-shadow 0.2s;
+                outline: none;
+            }
+
+            .read-more:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0, 200, 150, 0.4);
+            }
+
+            .card-bg {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(45deg, rgba(0, 150, 255, 0.05), transparent 70%), linear-gradient(135deg, rgba(0, 200, 150, 0.05), transparent 70%);
+                opacity: 0.3;
+                pointer-events: none;
+            }
+
+            .card-code {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                font-family: 'Roboto Mono', monospace;
+                font-size: 12px;
+                color: rgba(0, 255, 150, 0.15);
+                padding: 15px;
+                line-height: 1.4;
+                overflow: hidden;
+                pointer-events: none;
+            }
+
+            .glitch {
+                position: relative;
+                display: inline-block;
+            }
+
+            .glitch::before,
+            .glitch::after {
+                content: attr(data-text);
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            .glitch::before {
+                left: 2px;
+                text-shadow: -1px 0 #00f7ff;
+                clip: rect(44px, 450px, 56px, 0);
+                animation: glitch-anim 5s infinite linear alternate-reverse;
+            }
+
+            .glitch::after {
+                left: -2px;
+                text-shadow: -1px 0 #00ff99;
+                clip: rect(44px, 450px, 56px, 0);
+                animation: glitch-anim2 5s infinite linear alternate-reverse;
+            }
+
+            @keyframes glitch-anim {
+                0% {
+                    clip: rect(42px, 9999px, 44px, 0);
+                }
+
+                5% {
+                    clip: rect(12px, 9999px, 59px, 0);
+                }
+
+                10% {
+                    clip: rect(48px, 9999px, 29px, 0);
+                }
+
+                15% {
+                    clip: rect(42px, 9999px, 73px, 0);
+                }
+
+                20% {
+                    clip: rect(63px, 9999px, 27px, 0);
+                }
+
+                25% {
+                    clip: rect(34px, 9999px, 55px, 0);
+                }
+
+                30% {
+                    clip: rect(86px, 9999px, 73px, 0);
+                }
+
+                35% {
+                    clip: rect(20px, 9999px, 20px, 0);
+                }
+
+                40% {
+                    clip: rect(26px, 9999px, 60px, 0);
+                }
+
+                45% {
+                    clip: rect(25px, 9999px, 66px, 0);
+                }
+
+                50% {
+                    clip: rect(57px, 9999px, 98px, 0);
+                }
+
+                55% {
+                    clip: rect(5px, 9999px, 46px, 0);
+                }
+
+                60% {
+                    clip: rect(82px, 9999px, 31px, 0);
+                }
+
+                65% {
+                    clip: rect(54px, 9999px, 27px, 0);
+                }
+
+                70% {
+                    clip: rect(28px, 9999px, 99px, 0);
+                }
+
+                75% {
+                    clip: rect(45px, 9999px, 69px, 0);
+                }
+
+                80% {
+                    clip: rect(23px, 9999px, 85px, 0);
+                }
+
+                85% {
+                    clip: rect(54px, 9999px, 84px, 0);
+                }
+
+                90% {
+                    clip: rect(45px, 9999px, 47px, 0);
+                }
+
+                95% {
+                    clip: rect(37px, 9999px, 20px, 0);
+                }
+
+                100% {
+                    clip: rect(73px, 9999px, 99px, 0);
+                }
+            }
+
+            @keyframes glitch-anim2 {
+                0% {
+                    clip: rect(65px, 9999px, 100px, 0);
+                }
+
+                5% {
+                    clip: rect(52px, 9999px, 74px, 0);
+                }
+
+                10% {
+                    clip: rect(79px, 9999px, 85px, 0);
+                }
+
+                15% {
+                    clip: rect(75px, 9999px, 5px, 0);
+                }
+
+                20% {
+                    clip: rect(67px, 9999px, 61px, 0);
+                }
+
+                25% {
+                    clip: rect(14px, 9999px, 79px, 0);
+                }
+
+                30% {
+                    clip: rect(1px, 9999px, 66px, 0);
+                }
+
+                35% {
+                    clip: rect(86px, 9999px, 30px, 0);
+                }
+
+                40% {
+                    clip: rect(23px, 9999px, 98px, 0);
+                }
+
+                45% {
+                    clip: rect(85px, 9999px, 72px, 0);
+                }
+
+                50% {
+                    clip: rect(71px, 9999px, 75px, 0);
+                }
+
+                55% {
+                    clip: rect(2px, 9999px, 48px, 0);
+                }
+
+                60% {
+                    clip: rect(30px, 9999px, 16px, 0);
+                }
+
+                65% {
+                    clip: rect(59px, 9999px, 50px, 0);
+                }
+
+                70% {
+                    clip: rect(41px, 9999px, 62px, 0);
+                }
+
+                75% {
+                    clip: rect(2px, 9999px, 82px, 0);
+                }
+
+                80% {
+                    clip: rect(47px, 9999px, 73px, 0);
+                }
+
+                85% {
+                    clip: rect(3px, 9999px, 27px, 0);
+                }
+
+                90% {
+                    clip: rect(26px, 9999px, 55px, 0);
+                }
+
+                95% {
+                    clip: rect(42px, 9999px, 97px, 0);
+                }
+
+                100% {
+                    clip: rect(38px, 9999px, 49px, 0);
+                }
+            }
+
+            .matrix-code {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: -1;
+                opacity: 0.05;
+                pointer-events: none;
+            }
+
+            .matrix-row {
+                display: flex;
+                justify-content: space-around;
+                font-family: 'Roboto Mono', monospace;
+                color: #00ff99;
+                font-size: 18px;
+                white-space: nowrap;
+                margin-bottom: 10px;
+            }
+
+            @media (max-width: 1024px) {
+                .sidebar {
+                    transform: translateX(-280px);
+                }
+
+                .sidebar.active {
+                    transform: translateX(0);
+                }
+
+                .main-content {
+                    margin-left: 0;
+                }
+
+                .menu-toggle {
+                    display: block;
+                }
+            }
+
+            @media (max-width: 768px) {
+                .title {
+                    font-size: 2.5rem;
+                }
+
+                .subtitle {
+                    font-size: 1.1rem;
+                }
+
+                .articles-container {
+                    grid-template-columns: 1fr;
+                }
+
+                .preloader-logo {
+                    font-size: 2.5rem;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .title {
+                    font-size: 2rem;
+                }
+
+                .card-header,
+                .card-body,
+                .card-footer {
+                    padding: 15px;
+                }
+
+                .preloader-logo {
+                    font-size: 2rem;
+                }
+
+                .loading-container,
+                .terminal-code {
+                    width: 95%;
+                }
+
+                .username {
+                    font-size: 1.5rem;
+                }
+            }
+
+            .menu-toggle {
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                width: 30px;
+                height: 30px;
+                background: rgba(20, 25, 40, 0.8);
+                border: 1px solid rgba(0, 200, 150, 0.3);
+                border-radius: 5px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                cursor: pointer;
+                z-index: 101;
+                display: none;
+            }
+
+            .menu-toggle span {
+                display: block;
+                width: 25px;
+                height: 3px;
+                background: #00ccff;
+                margin: 4px 0;
+                transition: all 0.3s ease;
+            }
+
+            .section-title {
+                font-family: 'Orbitron', sans-serif;
+                font-size: 1.5rem;
+                color: #00ccff;
+                margin: 30px 0 20px;
+                padding-bottom: 10px;
+                border-bottom: 1px solid rgba(0, 200, 150, 0.3);
+                position: relative;
+            }
+
+            .section-title::after {
+                content: "";
+                position: absolute;
+                bottom: -1px;
+                left: 0;
+                width: 100px;
+                height: 2px;
+                background: linear-gradient(90deg, #00aaff, #00ff99);
+            }
+
+            .sound-toggle {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                background: rgba(20, 25, 40, 0.8);
+                border: 1px solid rgba(0, 200, 150, 0.3);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                z-index: 102;
+                color: #00ccff;
+                font-size: 22px;
+                transition: all 0.3s ease;
+            }
+
+            .sound-toggle:hover {
+                background: rgba(30, 35, 50, 0.9);
+                transform: scale(1.1);
+            }
+
+            .sound-toggle.muted {
+                color: #ff6666;
+            }
+
+            .hack-container {
+                display: none;
+                justify-content: center;
+                margin-top: 30px;
+                opacity: 0;
+                transform: translateY(20px);
+                transition: opacity 0.8s ease, transform 0.8s ease;
+            }
+
+            .hack-container.visible {
+                display: flex;
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            .hack-btn {
+                background: transparent;
+                color: #00ff99;
+                border: 2px solid #00ff99;
+                padding: 15px 40px;
+                font-family: 'Roboto Mono', monospace;
+                font-size: 1.2rem;
+                text-transform: uppercase;
+                letter-spacing: 3px;
+                cursor: pointer;
+                position: relative;
+                overflow: hidden;
+                transition: all 0.5s ease;
+                outline: none;
+                z-index: 1;
+                text-shadow: 0 0 10px rgba(0, 255, 150, 0.4);
+                box-shadow: 0 0 15px rgba(0, 255, 150, 0.3);
+            }
+
+            .hack-btn::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 0;
+                height: 100%;
+                background: rgba(0, 255, 150, 0.2);
+                transition: width 0.5s ease;
+                z-index: -1;
+            }
+
+            .hack-btn:hover {
+                color: #0a0a12;
+                background: #00ff99;
+                box-shadow: 0 0 20px rgba(0, 255, 150, 0.6);
+            }
+
+            .hack-btn:hover::before {
+                width: 100%;
+            }
+
+            .typing-text {
+                overflow: hidden;
+                white-space: nowrap;
+                display: inline-block;
+            }
+
+            @keyframes titleFadeIn {
+                0% {
+                    opacity: 0;
+                    transform: translateY(20px);
+                    text-shadow: 0 0 30px rgba(0, 200, 255, 0);
+                }
+
+                100% {
+                    opacity: 1;
+                    transform: translateY(0);
+                    text-shadow: 0 0 30px rgba(0, 200, 255, 0.4);
+                }
+            }
+
+            .title.animated {
+                animation: titleFadeIn 1.5s forwards;
+            }
+
+            .subtitle.animated {
+                animation: titleFadeIn 1.5s forwards;
+                animation-delay: 0.5s;
+            }
+
+            .sidebar-item-hover {
+                position: relative;
+                overflow: hidden;
+            }
+
+            .sidebar-item-hover::after {
+                content: '';
+                position: absolute;
+                left: 0;
+                bottom: 0;
+                width: 0;
+                height: 2px;
+                background: linear-gradient(90deg, #00aaff, #00ff99);
+                transition: width 0.3s ease;
+            }
+
+            .sidebar-item-hover:hover::after {
+                width: 100%;
+            }
+
+            .user-title {
+                transition: all 0.3s ease;
+            }
+
+            .user-title:hover {
+                text-shadow: 0 0 10px rgba(0, 255, 150, 0.6);
+                transform: scale(1.05);
+            }
+
+            @keyframes fadeOutLogo {
+                0% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+
+                50% {
+                    transform: scale(1.2);
+                    opacity: 0.7;
+                    text-shadow: 0 0 30px rgba(0, 255, 150, 0.8);
+                }
+
+                100% {
+                    transform: scale(0);
+                    opacity: 0;
+                }
+            }
+
+            .char {
+                display: inline-block;
+                transition: transform 0.3s ease, color 0.3s ease;
+                transform: translateY(0);
+            }
+
+            .char-animate {
+                transform: translateY(-5px);
+                color: #00ff99;
+                text-shadow: 0 0 10px rgba(0, 255, 150, 0.6);
+            }
+
+            .title,
+            .subtitle {
+                min-height: 1.2em;
+                line-height: 1.2;
+            }
+
+            .title {
+                margin-bottom: 30px;
+            }
+
+            .username-container,
+            .user-title-container {
+                display: inline-block;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .username-container::after,
+            .user-title-container::after {
+                content: '';
+                position: absolute;
+                left: 0;
+                bottom: 0;
+                width: 0;
+                height: 2px;
+                background: linear-gradient(90deg, #00aaff, #00ff99);
+                transition: width 0.5s ease;
+            }
+
+            .username-container:hover::after,
+            .user-title-container:hover::after {
+                width: 100%;
+            }
+
+            .loading-container,
+            .terminal-code {
+                transition: opacity 0.8s ease, transform 0.8s ease;
+            }
+
+            @keyframes zoomOut {
+                0% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+
+                50% {
+                    transform: scale(1.2);
+                    opacity: 0.7;
+                    text-shadow: 0 0 30px rgba(0, 255, 150, 0.8);
+                }
+
+                100% {
+                    transform: scale(0);
+                    opacity: 0;
+                }
+            }
+
+            .preloader-logo-fade {
+                animation: zoomOut 1s forwards;
+            }
+
+            .title {
+                min-height: 1.2em;
+                line-height: 1.2;
+                margin-bottom: 30px;
+            }
+
+            .subtitle {
+                animation: none !important;
+                opacity: 1 !important;
+                transform: none !important;
+            }
+
+            .resources-section {
+                max-width: 1200px;
+                margin: 40px auto;
+                padding: 20px;
+            }
+
+            .resources-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+                margin-top: 30px;
+            }
+
+            .resource-item {
+                background: rgba(10, 12, 20, 0.6);
+                border: 1px solid rgba(0, 200, 150, 0.3);
+                border-radius: 8px;
+                padding: 20px;
+                text-align: center;
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .resource-item:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0, 200, 150, 0.2);
+                border-color: rgba(0, 200, 150, 0.6);
+            }
+
+            .resource-icon {
+                font-size: 2.5rem;
+                margin-bottom: 15px;
+                color: #00ccff;
+                text-shadow: 0 0 15px rgba(0, 150, 255, 0.4);
+            }
+
+            .resource-title {
+                font-size: 1.2rem;
+                color: #00ff99;
+                margin-bottom: 10px;
+                font-family: 'Orbitron', sans-serif;
+            }
+
+            .resource-description {
+                font-size: 0.9rem;
+                color: #b0b0ff;
+                line-height: 1.5;
+            }
+
+            .resource-item::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 3px;
+                background: linear-gradient(90deg, #00aaff, #00ff99);
+                opacity: 0.7;
+            }
+
+            .tools-section {
+                max-width: 1200px;
+                margin: 60px auto 30px;
+                padding: 20px;
+            }
+
+            .tools-container {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+                gap: 30px;
+                margin-top: 30px;
+            }
+
+            .tool-card {
+                background: rgba(10, 12, 20, 0.8);
+                border: 1px solid rgba(0, 200, 150, 0.2);
+                border-radius: 10px;
+                overflow: hidden;
+                transition: all 0.4s ease;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                position: relative;
+                transform-style: preserve-3d;
+                perspective: 1000px;
+            }
+
+            .tool-card:hover {
+                transform: translateY(-10px) rotateX(5deg) rotateY(-2deg);
+                box-shadow: 0 20px 40px rgba(0, 200, 150, 0.3), 0 0 30px rgba(0, 200, 150, 0.2);
+                border-color: rgba(0, 200, 150, 0.6);
+            }
+
+            .tool-card::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 5px;
+                background: linear-gradient(90deg, #00aaff, #00ff99);
+                z-index: 2;
+            }
+
+            .tool-header {
+                padding: 20px;
+                background: rgba(20, 25, 40, 0.4);
+                border-bottom: 1px solid rgba(0, 200, 150, 0.2);
+                position: relative;
+            }
+
+            .tool-title {
+                font-family: 'Orbitron', sans-serif;
+                font-size: 1.5rem;
+                color: #00ccff;
+                margin-bottom: 10px;
+                letter-spacing: 1px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .tool-description {
+                color: #e0e0ff;
+                line-height: 1.6;
+                font-size: 1rem;
+                min-height: 80px;
+            }
+
+            .tool-body {
+                padding: 20px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .tool-meta {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 15px;
+            }
+
+            .tool-stats {
+                display: flex;
+                gap: 15px;
+                color: #00ff99;
+                font-size: 0.9rem;
+            }
+
+            .tool-stats i {
+                color: #00ccff;
+                margin-right: 5px;
+            }
+
+            .github-link {
+                display: flex;
+                align-items: center;
+                color: #00ff99;
+                text-decoration: none;
+                font-size: 0.9rem;
+                transition: all 0.3s ease;
+            }
+
+            .github-link i {
+                margin-right: 8px;
+                font-size: 1.2rem;
+            }
+
+            .github-link:hover {
+                color: #00ccff;
+                text-shadow: 0 0 10px rgba(0, 200, 255, 0.6);
+            }
+
+            .tool-footer {
+                padding: 15px 20px;
+                background: rgba(20, 25, 40, 0.4);
+                border-top: 1px solid rgba(0, 200, 150, 0.2);
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .tool-tag {
+                background: rgba(0, 150, 255, 0.2);
+                color: #00ff99;
+                padding: 5px 12px;
+                border-radius: 20px;
+                font-size: 0.8rem;
+                display: inline-block;
+            }
+
+            .tool-card .card-bg {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(45deg, rgba(0, 150, 255, 0.05), transparent 70%), linear-gradient(135deg, rgba(0, 200, 150, 0.05), transparent 70%);
+                opacity: 0.3;
+                pointer-events: none;
+            }
+
+            .tool-card .card-code {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                font-family: 'Roboto Mono', monospace;
+                font-size: 12px;
+                color: rgba(0, 255, 150, 0.15);
+                padding: 15px;
+                line-height: 1.4;
+                overflow: hidden;
+                pointer-events: none;
+            }
+
+            .materials-section {
+                max-width: 1200px;
+                margin: 60px auto 30px;
+                padding: 20px;
+            }
+
+            .materials-container {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+                gap: 30px;
+                margin-top: 30px;
+            }
+
+            .material-card {
+                background: rgba(10, 12, 20, 0.8);
+                border: 1px solid rgba(0, 200, 150, 0.2);
+                border-radius: 10px;
+                overflow: hidden;
+                transition: all 0.4s ease;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                position: relative;
+            }
+
+            .material-card:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 15px 35px rgba(0, 200, 150, 0.4);
+                border-color: rgba(0, 200, 150, 0.6);
+            }
+
+            .material-header {
+                padding: 20px;
+                background: rgba(20, 25, 40, 0.4);
+                position: relative;
+                min-height: 120px;
+            }
+
+            .material-title {
+                font-family: 'Orbitron', sans-serif;
+                font-size: 1.4rem;
+                color: #00ccff;
+                margin-bottom: 10px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .material-source {
+                color: #00ff99;
+                font-size: 0.9rem;
+                display: flex;
+                align-items: center;
+            }
+
+            .material-source i {
+                margin-right: 8px;
+                color: #00ccff;
+            }
+
+            .material-content {
+                padding: 20px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .material-excerpt {
+                color: #e0e0ff;
+                line-height: 1.6;
+                margin-bottom: 20px;
+                min-height: 100px;
+            }
+
+            .material-link {
+                display: inline-flex;
+                align-items: center;
+                color: #00ff99;
+                text-decoration: none;
+                font-size: 0.9rem;
+                transition: all 0.3s ease;
+            }
+
+            .material-link i {
+                margin-left: 8px;
+                transition: transform 0.3s ease;
+            }
+
+            .material-link:hover {
+                color: #00ccff;
+                text-shadow: 0 0 10px rgba(0, 200, 255, 0.6);
+            }
+
+            .material-link:hover i {
+                transform: translateX(5px);
+            }
+
+            .stats-section {
+                max-width: 1200px;
+                margin: 60px auto;
+                padding: 30px 20px;
+                background: rgba(10, 12, 20, 0.6);
+                border: 1px solid rgba(0, 200, 150, 0.3);
+                border-radius: 10px;
+                text-align: center;
+            }
+
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 30px;
+                margin-top: 30px;
+            }
+
+            .stat-item {
+                padding: 20px;
+                position: relative;
+            }
+
+            .stat-value {
+                font-family: 'Orbitron', sans-serif;
+                font-size: 3rem;
+                color: #00ff99;
+                margin-bottom: 10px;
+                text-shadow: 0 0 15px rgba(0, 255, 150, 0.4);
+            }
+
+            .stat-label {
+                font-size: 1.1rem;
+                color: #00ccff;
+            }
+
+            .stat-item::before {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 60px;
+                height: 3px;
+                background: linear-gradient(90deg, #00aaff, #00ff99);
+                border-radius: 2px;
+            }
+
+            .achievements-slider {
+                max-width: 1000px;
+                margin: 60px auto;
+                padding: 20px;
+                position: relative;
+            }
+
+            .slider-container {
+                overflow: hidden;
+                position: relative;
+                border-radius: 10px;
+                border: 1px solid rgba(0, 200, 150, 0.3);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            }
+
+            .slider-track {
+                display: flex;
+                transition: transform 0.5s ease;
+            }
+
+            .slider-item {
+                min-width: 100%;
+                padding: 30px;
+                background: rgba(10, 12, 20, 0.8);
+                text-align: center;
+            }
+
+            .achievement-icon {
+                font-size: 3rem;
+                color: #00ff99;
+                margin-bottom: 20px;
+                text-shadow: 0 0 15px rgba(0, 255, 150, 0.4);
+            }
+
+            .achievement-title {
+                font-family: 'Orbitron', sans-serif;
+                font-size: 1.8rem;
+                color: #00ccff;
+                margin-bottom: 15px;
+            }
+
+            .achievement-description {
+                color: #e0e0ff;
+                line-height: 1.6;
+                max-width: 700px;
+                margin: 0 auto;
+            }
+
+            .slider-nav {
+                display: flex;
+                justify-content: center;
+                margin-top: 30px;
+                gap: 15px;
+            }
+
+            .slider-btn {
+                width: 45px;
+                height: 45px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(30, 35, 50, 0.5);
+                color: #00ccff;
+                font-size: 18px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                border: 1px solid rgba(0, 200, 150, 0.3);
+            }
+
+            .slider-btn:hover {
+                background: linear-gradient(45deg, #00aaff, #00ff99);
+                color: #0a0a12;
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0, 200, 150, 0.4);
+            }
+
+            .slider-dots {
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                margin-top: 20px;
+            }
+
+            .slider-dot {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                background: rgba(0, 200, 150, 0.3);
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .slider-dot.active {
+                background: #00ff99;
+                transform: scale(1.2);
+                box-shadow: 0 0 10px rgba(0, 255, 150, 0.6);
+            }
+
+            @media (max-width: 768px) {
+
+                .tools-container,
+                .materials-container,
+                .resources-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .stat-value {
+                    font-size: 2.5rem;
+                }
+
+                .slider-item {
+                    padding: 20px;
+                }
+            }
+
+            .site-footer {
+                background: rgba(10, 12, 20, 0.9);
+                border-top: 1px solid rgba(0, 200, 150, 0.3);
+                padding: 20px;
+                text-align: center;
+                margin-top: auto; /* Это прижимает футер к низу */
+                width: 100%;
+            }
+
+            .footer-content {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            .site-footer p {
+                color: #00ccff;
+                font-size: 0.9rem;
+                margin: 5px 0;
+                text-shadow: 0 0 10px rgba(0, 150, 255, 0.3);
+            }
+
+            .site-footer p:first-child {
+                font-family: 'Orbitron', sans-serif;
+                letter-spacing: 1px;
+            }
+
+            .skills-section {
+                max-width: 1400px;
+                margin: 60px auto;
+                padding: 20px;
+            }
+
+            .skills-container {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+                gap: 30px;
+                margin-top: 30px;
+            }
+
+            .skill-category {
+                background: rgba(10, 12, 20, 0.8);
+                border: 1px solid rgba(0, 200, 150, 0.2);
+                border-radius: 10px;
+                overflow: hidden;
+                transition: all 0.4s ease;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                position: relative;
+            }
+
+            .skill-category:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 15px 35px rgba(0, 200, 150, 0.4);
+                border-color: rgba(0, 200, 150, 0.6);
+            }
+
+            .skill-category::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 5px;
+                background: linear-gradient(90deg, #00aaff, #00ff99);
+                z-index: 2;
+            }
+
+            .skill-header {
+                padding: 25px;
+                background: rgba(20, 25, 40, 0.4);
+                border-bottom: 1px solid rgba(0, 200, 150, 0.2);
+                display: flex;
+                align-items: center;
+            }
+
+            .skill-icon {
+                font-size: 2.5rem;
+                color: #00ccff;
+                margin-right: 20px;
+                text-shadow: 0 0 15px rgba(0, 150, 255, 0.4);
+            }
+
+            .skill-title {
+                font-family: 'Orbitron', sans-serif;
+                font-size: 1.6rem;
+                color: #00ccff;
+                margin: 0;
+            }
+
+            .skill-content {
+                padding: 20px;
+            }
+
+            .skill-item {
+                display: flex;
+                margin-bottom: 25px;
+                padding-bottom: 25px;
+                border-bottom: 1px solid rgba(0, 200, 150, 0.1);
+            }
+
+            .skill-item:last-child {
+                margin-bottom: 0;
+                padding-bottom: 0;
+                border-bottom: none;
+            }
+
+            .skill-subicon {
+                font-size: 1.8rem;
+                color: #00ff99;
+                margin-right: 15px;
+                min-width: 40px;
+                text-align: center;
+            }
+
+            .skill-details h4 {
+                font-size: 1.3rem;
+                color: #00ff99;
+                margin-bottom: 8px;
+                font-family: 'Roboto Mono', monospace;
+            }
+
+            .skill-details p {
+                color: #e0e0ff;
+                line-height: 1.6;
+                font-size: 1.05rem;
+            }
+
+            @media (max-width: 1200px) {
+                .sidebar {
+                    width: 280px;
+                }
+
+                .main-content {
+                    margin-left: 280px;
+                }
+            }
+
+            @media (max-width: 1024px) {
+                .sidebar {
+                    transform: translateX(-100%);
+                    width: 300px;
+                }
+
+                .sidebar.active {
+                    transform: translateX(0);
+                }
+
+                .main-content {
+                    margin-left: 0;
+                    width: 100%;
+                }
+
+                .menu-toggle {
+                    display: block;
+                }
+            }
+
+            @media (max-width: 900px) {
+
+                .articles-container,
+                .tools-container,
+                .materials-container,
+                .resources-grid,
+                .skills-container {
+                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                }
+            }
+
+            @media (max-width: 768px) {
+                .title {
+                    font-size: 2.5rem;
+                }
+
+                .subtitle {
+                    font-size: 1.1rem;
+                }
+
+                .articles-container,
+                .tools-container,
+                .materials-container,
+                .resources-grid,
+                .skills-container {
+                    grid-template-columns: 1fr;
+                    padding: 10px;
+                }
+
+                .preloader-logo {
+                    font-size: 2.5rem;
+                }
+
+                .header {
+                    padding: 30px 15px 15px;
+                }
+
+                .card-header,
+                .card-body,
+                .card-footer {
+                    padding: 20px;
+                }
+
+                .section-title {
+                    font-size: 1.4rem;
+                    margin: 25px 0 15px;
+                }
+
+                .stat-value {
+                    font-size: 2.5rem;
+                }
+
+                .slider-item {
+                    padding: 20px;
+                }
+
+                .achievement-title {
+                    font-size: 1.6rem;
+                }
+
+                .profile {
+                    padding: 15px 0;
+                }
+
+                .avatar {
+                    width: 100px;
+                    height: 100px;
+                }
+
+                .username {
+                    font-size: 1.5rem;
+                }
+
+                .contact-item {
+                    padding: 8px;
+                    font-size: 0.9rem;
+                }
+            }
+
+            @media (max-width: 600px) {
+                .preloader-logo {
+                    font-size: 2.2rem;
+                }
+
+                .loading-container,
+                .terminal-code {
+                    width: 95%;
+                }
+
+                .hack-btn {
+                    padding: 12px 30px;
+                    font-size: 1.1rem;
+                }
+
+                .stats-grid {
+                    grid-template-columns: 1fr 1fr;
+                    gap: 15px;
+                }
+
+                .stat-item {
+                    padding: 15px;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .title {
+                    font-size: 2rem;
+                    line-height: 1.2;
+                }
+
+                .subtitle {
+                    font-size: 0.95rem;
+                }
+
+                .card-header,
+                .card-body,
+                .card-footer {
+                    padding: 15px;
+                }
+
+                .preloader-logo {
+                    font-size: 1.8rem;
+                }
+
+                .loading-container,
+                .terminal-code {
+                    width: 100%;
+                }
+
+                .username {
+                    font-size: 1.5rem;
+                }
+
+                .user-title {
+                    font-size: 1rem;
+                }
+
+                .contact-item {
+                    flex-direction: column;
+                    text-align: center;
+                }
+
+                .contact-icon {
+                    margin-right: 0;
+                    margin-bottom: 10px;
+                }
+
+                .section-title {
+                    font-size: 1.3rem;
+                    margin: 20px 0 12px;
+                }
+
+                .stat-value {
+                    font-size: 2rem;
+                }
+
+                .achievement-title {
+                    font-size: 1.4rem;
+                }
+
+                .tool-header,
+                .tool-body,
+                .tool-footer,
+                .material-header,
+                .material-content,
+                .skill-header,
+                .skill-content {
+                    padding: 15px;
+                }
+
+                .tool-title,
+                .material-title,
+                .skill-title {
+                    font-size: 1.3rem;
+                }
+
+                .resource-title {
+                    font-size: 1.2rem;
+                }
+
+                .hack-btn {
+                    padding: 10px 25px;
+                    font-size: 1rem;
+                }
+
+                .slider-nav {
+                    gap: 10px;
+                }
+
+                .slider-btn {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 16px;
+                }
+
+                .stats-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            @media (max-width: 380px) {
+                .title {
+                    font-size: 1.8rem;
+                }
+
+                .preloader-logo {
+                    font-size: 1.6rem;
+                }
+
+                .card-title,
+                .tool-title,
+                .material-title,
+                .skill-title {
+                    font-size: 1.2rem;
+                }
+
+                .resource-title {
+                    font-size: 1.1rem;
+                }
+
+                .section-title {
+                    font-size: 1.2rem;
+                }
+
+                .stat-value {
+                    font-size: 1.8rem;
+                }
+
+                .menu-toggle {
+                    top: 15px;
+                    left: 15px;
+                    width: 40px;
+                    height: 40px;
+                }
+            }
+
+            .mobile-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                z-index: 99;
+                display: none;
+            }
+
+            .sidebar.active~.mobile-overlay {
+                display: block;
+            }
+
+            .hack-btn {
+                white-space: nowrap;
+            }
+        </style>
+    </head>
+    <body>
+        <audio id="startSound" preload="auto">
+            <source src="wd-ctos_connect_left-text-builds-in-01.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="completeSound" preload="auto">
+            <source src="wd-ctos_all_section-text-highlights-blue-dot-01.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="hoverSound" preload="auto">
+            <source src="wd-ctos_intro_learn-more-rollover-01.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="textSound" preload="auto">
+            <source src="wd-ctos_all_text.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="navHoverSound" preload="auto">
+            <source src="wd-ctos_all_top-nav-rollover-01.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="fadeOutSound" preload="auto">
+            <source src="wd-ctos_intro_learn-more-click-fade-out-01.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="ambientSound" preload="auto">
+            <source src="wd-ctos_all_music-ambient-loop-01.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="hoverSound2" preload="auto">
+            <source src="wd-ctos_imagine_braile-button-rollover-01.mp3" type="audio/mpeg">
+        </audio>
+        <div class="sound-toggle" id="soundToggle">
+            <i class="fas fa-volume-up"></i>
+        </div>
+        <div class="preloader" id="preloader">
+            <div class="preloader-logo glitch" data-text="SecDet" id="preloaderLogo">SecDet</div>
+            <div class="loading-container" id="loadingContainer">
+                <div class="loading-text">Инициализация системы безопасности...</div>
+                <div class="loading-bar">
+                    <div class="progress" id="progress"></div>
+                </div>
+                <div class="loading-percentage" id="percentage">0%</div>
+            </div>
+            <div class="loading-messages" id="loadingMessages">Подключение к сети...</div>
+            <div class="terminal-code" id="terminalCode">
+                <div>> Загрузка модулей безопасности...</div>
+                <div>> Проверка системных протоколов...</div>
+                <div>> Инициализация интерфейса...</div>
+                <div>> Подключение к базе данных уязвимостей...</div>
+                <div>> Активация системы защиты...</div>
+            </div>
+            <div class="hack-container" id="hackContainer">
+                <button class="hack-btn" id="hackBtn">ВХОД В СИСТЕМУ</button>
+            </div>
+        </div>
+        <div class="sidebar" id="sidebar">
+            <div class="profile">
+                <div class="avatar">
+                    <img src="https://avatars.githubusercontent.com/u/79522262?v=4" alt="SecDet Avatar">
+                </div>
+                <div class="username-container" id="usernameContainer">
+                    <span class="username" id="username">SecDet</span>
+                </div>
+                <div class="user-title-container" id="userTitleContainer">
+                    <span class="user-title" id="userTitle">Penetration Tester</span>
+                </div>
+                <div class="social-links">
+                    <a target="_blank" href="https://github.com/Untouchable17" class="social-link">
+                        <i class="fab fa-github"></i>
+                    </a>
+                    <a target="_blank" href="https://t.me/interpol_eu" class="social-link">
+                        <i class="fa-brands fa-telegram"></i>
+                    </a>
+                    <a href="mailto:tylerblackout17@gmail.com" class="social-link">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="section-title">Контакты</div>
+            <div class="contact-info">
+                <div class="contact-item sidebar-item-hover">
+                    <div class="contact-text">tylerblackout17@gmail.com</div>
+                </div>
+                <div class="contact-item sidebar-item-hover">
+                    <div class="contact-icon">
+                        <i class="fa-brands fa-telegram"></i>
+                    </div>
+                    <div class="contact-text">@interpol_eu</div>
+                </div>
+            </div>
+            <div class="section-title">Навыки</div>
+            <div class="contact-info">
+                <div class="contact-item sidebar-item-hover">
+                    <div class="contact-icon">
+                        <i class="fas fa-bug"></i>
+                    </div>
+                    <div class="contact-text">Web App Pentesting</div>
+                </div>
+                <div class="contact-item sidebar-item-hover">
+                    <div class="contact-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <div class="contact-text">Exploit Development</div>
+                </div>
+                <div class="contact-item sidebar-item-hover">
+                    <div class="contact-icon">
+                        <i class="fas fa-terminal"></i>
+                    </div>
+                    <div class="contact-text">WhiteBox Analysis</div>
+                </div>
+                <div class="contact-item sidebar-item-hover">
+                    <div class="contact-icon">
+                        <i class="fas fa-laptop-code"></i>
+                    </div>
+                    <div class="contact-text">Multi-Language Dev</div>
+                </div>
+                <div class="contact-item sidebar-item-hover">
+                    <div class="contact-icon">
+                        <i class="fas fa-fish"></i>
+                    </div>
+                    <div class="contact-text">Phishing Campaigns</div>
+                </div>
+                <div class="contact-item sidebar-item-hover">
+                    <div class="contact-icon">
+                        <i class="fas fa-microscope"></i>
+                    </div>
+                    <div class="contact-text">Reverse Engineering</div>
+                </div>
+                <div class="contact-item sidebar-item-hover">
+                    <div class="contact-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="contact-text">OSINT & Recon</div>
+                </div>
+            </div>
+            <div class="section-title">Дополнительно</div>
+            <div class="contact-info">
+                <div class="contact-item sidebar-item-hover">
+                    <div class="contact-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="contact-text">Лучшие результаты</div>
+                </div>
+                <div class="contact-item sidebar-item-hover">
+                    <div class="contact-icon">
+                        <i class="fas fa-microscope"></i>
+                    </div>
+                    <div class="contact-text">Своя разработка</div>
+                </div>
+                <div class="contact-item sidebar-item-hover">
+                    <div class="contact-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="contact-text">6 лет опыта в IT</div>
+                </div>
+            </div>
+        </div>
+        <div class="menu-toggle" id="menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="main-content">
+            <div class="content" id="content">
+                <div class="header">
+                    <h1 class="title" id="mainTitle">SecDet Samurai</h1>
+                    <p class="subtitle" id="mainSubtitle">Мы не будем менять этот мир - мы перепишем код</p>
+                </div>
+                <div class="skills-section">
+                    <h2 class="section-title">Экспертные навыки</h2>
+                    <div class="skills-container">
+                        <div class="skill-category">
+                            <div class="skill-header">
+                                <i class="fas fa-shield-alt skill-icon"></i>
+                                <h3 class="skill-title">Пентест внешнего периметра</h3>
+                            </div>
+                            <div class="skill-content">
+                                <div class="skill-item">
+                                    <i class="fas fa-bug skill-subicon"></i>
+                                    <div class="skill-details">
+                                        <h4>Веб-приложения</h4>
+                                        <p>Полный цикл тестирования: BlackBox, GreyBox, WhiteBox</p>
+                                    </div>
+                                </div>
+                                <div class="skill-item">
+                                    <i class="fas fa-plug skill-subicon"></i>
+                                    <div class="skill-details">
+                                        <h4>API Security</h4>
+                                        <p>REST, GraphQL, SOAP - тестирование на уязвимости и неправильные настройки</p>
+                                    </div>
+                                </div>
+                                <div class="skill-item">
+                                    <i class="fas fa-server skill-subicon"></i>
+                                    <div class="skill-details">
+                                        <h4>Сетевые сервисы</h4>
+                                        <p>Сканирование внешнего периметра, поиск и эксплуатация уязвимых служб</p>
+                                    </div>
+                                </div>
+                                <div class="skill-item">
+                                    <i class="fas fa-memory skill-subicon"></i>
+                                    <div class="skill-details">
+                                        <h4>Анализ бинарных файлов</h4>
+                                        <p>Реверс-инжиниринг исполняемых файлов, библиотек и модулей</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="skill-category">
+                            <div class="skill-header">
+                                <i class="fas fa-bug skill-icon"></i>
+                                <h3 class="skill-title">Разработка эксплойтов и вредоносного ПО</h3>
+                            </div>
+                            <div class="skill-content">
+                                <div class="skill-item">
+                                    <i class="fas fa-file-code skill-subicon"></i>
+                                    <div class="skill-details">
+                                        <h4>PoC разработка</h4>
+                                        <p>Создание воспроизводимых эксплойтов для демонстрации уязвимостей</p>
+                                    </div>
+                                </div>
+                                <div class="skill-item">
+                                    <i class="fas fa-robot skill-subicon"></i>
+                                    <div class="skill-details">
+                                        <h4>Автоматизация</h4>
+                                        <p>Скрипты для автоматического поиска и эксплуатации уязвимостей</p>
+                                    </div>
+                                </div>
+                                <div class="skill-item">
+                                    <i class="fas fa-tools skill-subicon"></i>
+                                    <div class="skill-details">
+                                        <h4>Кастомизация</h4>
+                                        <p>Адаптация публичных эксплойтов под специфические окружения</p>
+                                    </div>
+                                </div>
+                                <div class="skill-item">
+                                    <i class="fas fa-virus skill-subicon"></i>
+                                    <div class="skill-details">
+                                        <h4>Трояны & Вирусы</h4>
+                                        <p>Разработка, кастомизация и внедрение скрытых вредоносных программ</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="skill-category">
+                            <div class="skill-header">
+                                <i class="fas fa-star skill-icon"></i>
+                                <h3 class="skill-title">Специализированные навыки</h3>
+                            </div>
+                            <div class="skill-content">
+                                <div class="skill-item">
+                                    <i class="fas fa-laptop-code skill-subicon"></i>
+                                    <div class="skill-details">
+                                        <h4>Программирование</h4>
+                                        <p>Python, JavaScript, C, C++, Java, PHP + фреймворки</p>
+                                    </div>
+                                </div>
+                                <div class="skill-item">
+                                    <i class="fas fa-fish skill-subicon"></i>
+                                    <div class="skill-details">
+                                        <h4>Фишинговые атаки</h4>
+                                        <p>Планирование и проведение целевых кампаний, анализ результатов</p>
+                                    </div>
+                                </div>
+                                <div class="skill-item">
+                                    <i class="fas fa-search skill-subicon"></i>
+                                    <div class="skill-details">
+                                        <h4>OSINT & Разведка</h4>
+                                        <p>Сбор информации, анализ цифрового следа, подготовка к тестированию</p>
+                                    </div>
+                                </div>
+                                <div class="skill-item">
+                                    <i class="fas fa-file-contract skill-subicon"></i>
+                                    <div class="skill-details">
+                                        <h4>Макросы & Дропперы</h4>
+                                        <p>Создание документов с макросами и многоступенчатых загрузчиков</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="resources-section">
+                    <h2 class="section-title">Мои ресурсы</h2>
+                    <div class="resources-grid">
+                        <a href="https://github.com/Untouchable17" target="_blank" style="text-decoration: none;">
+                            <div class="resource-item">
+                                <div class="resource-icon">
+                                    <i class="fab fa-github"></i>
+                                </div>
+                                <h3 class="resource-title">GitHub</h3>
+                                <p class="resource-description">Исходный код инструментов и эксплойтов</p>
+                            </div>
+                        </a>
+                        <a href="https://t.me/initial_persistence" target="_blank" style="text-decoration: none;">
+                            <div class="resource-item">
+                                <div class="resource-icon">
+                                    <i class="fa-brands fa-telegram"></i>
+                                </div>
+                                <h3 class="resource-title">Telegram</h3>
+                                <p class="resource-description">Авторский канал по исследованиям</p>
+                            </div>
+                        </a>
+                        <a href="https://github.com/Untouchable17/CVE-2025-24054" style="text-decoration: none;" target="_blank">
+                            <div class="resource-item">
+                                <div class="resource-icon">
+                                    <i class="fas fa-bug"></i>
+                                </div>
+                                <h3 class="resource-title">CVE-2025-24054</h3>
+                                <p class="resource-description">Windows File Explorer Zero Click NTLMv2-SSP Hash Disclosure</p>
+                            </div>
+                        </a>
+                        <a href="https://cvefeed.io/vuln/detail/CVE-2011-3389" style="text-decoration: none;" target="_blank">
+                            <div class="resource-item">
+                                <div class="resource-icon">
+                                    <i class="fas fa-bug"></i>
+                                </div>
+                                <h3 class="resource-title">Exploit DB</h3>
+                                <p class="resource-description">HTTP-ExploitKit опубликован в CVE-2011-3389</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                <div class="tools-section">
+                    <h2 class="section-title">Мои инструменты</h2>
+                    <div class="tools-container">
+                        <div class="tool-card">
+                            <div class="card-bg"></div>
+                            <div class="card-code">> root@secdet:~$ scan -target * --vuln sql <br>> SQLi vulnerabilities detected: 12 <br>> Critical: 5, High: 4, Medium: 3 </div>
+                            <div class="tool-header">
+                                <h3 class="tool-title">Android IMEI Changer</h3>
+                                <p class="tool-description">Программа для изменения идентификаторов IMEI под архитектурой ARM на базе Android устройств</p>
+                            </div>
+                            <div class="tool-body">
+                                <div class="tool-meta">
+                                    <div class="tool-stats">
+                                        <div>
+                                            <i class="fas fa-star"></i> 181
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-code-branch"></i> 41
+                                        </div>
+                                    </div>
+                                    <a target="_blank" href="https://github.com/Untouchable17/Android-IMEI-Changer" class="github-link">
+                                        <i class="fab fa-github"></i> GitHub </a>
+                                </div>
+                            </div>
+                            <div class="tool-footer">
+                                <span class="tool-tag">IMEI</span>
+                                <span class="tool-tag">Security</span>
+                                <span class="tool-tag">Android</span>
+                            </div>
+                        </div>
+                        <div class="tool-card">
+                            <div class="card-bg"></div>
+                            <div class="card-code">> root@secdet:~$ xss-scan --url target.com <br>> XSS vectors tested: 87 <br>> Vulnerabilities found: 9 <br>> DOM-based: 3, Reflected: 6 </div>
+                            <div class="tool-header">
+                                <h3 class="tool-title">HTTP ExploitKit</h3>
+                                <p class="tool-description">Репозиторий содержит коллекцию скриптов, предназначенных для использования различных уязвимостей в HTTP и связанных с ним протоколах</p>
+                            </div>
+                            <div class="tool-body">
+                                <div class="tool-meta">
+                                    <div class="tool-stats">
+                                        <div>
+                                            <i class="fas fa-star"></i> 30
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-code-branch"></i> 2
+                                        </div>
+                                    </div>
+                                    <a target="_blank" href="https://github.com/Untouchable17/HTTP-ExploitKit" class="github-link">
+                                        <i class="fab fa-github"></i> GitHub </a>
+                                </div>
+                            </div>
+                            <div class="tool-footer">
+                                <span class="tool-tag">HTTP</span>
+                                <span class="tool-tag">Exploit</span>
+                                <span class="tool-tag">Python</span>
+                            </div>
+                        </div>
+                        <div class="tool-card">
+                            <div class="card-bg"></div>
+                            <div class="card-code">> root@secdet:~$ api-scan -e prod-api <br>> Endpoints: 142 <br>> Vulnerabilities: 17 <br>> Auth bypass: 2, IDOR: 5 </div>
+                            <div class="tool-header">
+                                <h3 class="tool-title">JWT-CrackX</h3>
+                                <p class="tool-description">Инструмент для анализа уязвимостей в токенах JWT. Расширенный набор инструментов для проверки уязвимостей и эксплуатации JWT</p>
+                            </div>
+                            <div class="tool-body">
+                                <div class="tool-meta">
+                                    <div class="tool-stats">
+                                        <div>
+                                            <i class="fas fa-star"></i> 46
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-code-branch"></i> 4
+                                        </div>
+                                    </div>
+                                    <a target="_blank" href="https://github.com/Untouchable17/JWT-CrackX" class="github-link">
+                                        <i class="fab fa-github"></i> GitHub </a>
+                                </div>
+                            </div>
+                            <div class="tool-footer">
+                                <span class="tool-tag">API</span>
+                                <span class="tool-tag">Security</span>
+                                <span class="tool-tag">Go</span>
+                            </div>
+                        </div>
+                        <div class="tool-card">
+                            <div class="card-bg"></div>
+                            <div class="card-code">> root@secdet:~$ api-scan -e prod-api <br>> Endpoints: 142 <br>> Vulnerabilities: 17 <br>> Auth bypass: 2, IDOR: 5 </div>
+                            <div class="tool-header">
+                                <h3 class="tool-title">Windows DLL & Shellcode Injection</h3>
+                                <p class="tool-description">Скрипты для инжектирования DLL и шелл-кода</p>
+                            </div>
+                            <div class="tool-body">
+                                <div class="tool-meta">
+                                    <div class="tool-stats">
+                                        <div>
+                                            <i class="fas fa-star"></i> 6
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-code-branch"></i> 1
+                                        </div>
+                                    </div>
+                                    <a target="_blank" href="https://github.com/Untouchable17/Windows-DLL-Shellcode-Injection-Toolkit" class="github-link">
+                                        <i class="fab fa-github"></i> GitHub </a>
+                                </div>
+                            </div>
+                            <div class="tool-footer">
+                                <span class="tool-tag">ShellCode</span>
+                                <span class="tool-tag">DllInjection</span>
+                                <span class="tool-tag">Windows</span>
+                            </div>
+                        </div>
+                        <div class="tool-card">
+                            <div class="card-bg"></div>
+                            <div class="card-code">> root@secdet:~$ api-scan -e prod-api <br>> Endpoints: 142 <br>> Vulnerabilities: 17 <br>> Auth bypass: 2, IDOR: 5 </div>
+                            <div class="tool-header">
+                                <h3 class="tool-title">ShadowDrop-Framework</h3>
+                                <p class="tool-description">Расширенный набор инструментов для создания вредоносных нагрузок</p>
+                            </div>
+                            <div class="tool-body">
+                                <div class="tool-meta">
+                                    <div class="tool-stats">
+                                        <div>
+                                            <i class="fas fa-star"></i> 12
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-code-branch"></i> 7
+                                        </div>
+                                    </div>
+                                    <a target="_blank" href="https://github.com/Untouchable17/ShadowDrop-Framework" class="github-link">
+                                        <i class="fab fa-github"></i> GitHub </a>
+                                </div>
+                            </div>
+                            <div class="tool-footer">
+                                <span class="tool-tag">С2</span>
+                                <span class="tool-tag">Malware</span>
+                                <span class="tool-tag">Evasion</span>
+                            </div>
+                        </div>
+                        <div class="tool-card">
+                            <div class="card-bg"></div>
+                            <div class="card-code">> root@secdet:~$ api-scan -e prod-api <br>> Endpoints: 142 <br>> Vulnerabilities: 17 <br>> Auth bypass: 2, IDOR: 5 </div>
+                            <div class="tool-header">
+                                <h3 class="tool-title">Reverse TCP Shell</h3>
+                                <p class="tool-description">Инструмент для первичного закрепления в системах на базе Windows с помощью обратной оболочки, написанный на языке С++</p>
+                            </div>
+                            <div class="tool-body">
+                                <div class="tool-meta">
+                                    <div class="tool-stats">
+                                        <div>
+                                            <i class="fas fa-star"></i> 19
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-code-branch"></i> 5
+                                        </div>
+                                    </div>
+                                    <a target="_blank" href="https://github.com/Untouchable17/Reverse-TCP-Shell" class="github-link">
+                                        <i class="fab fa-github"></i> GitHub </a>
+                                </div>
+                            </div>
+                            <div class="tool-footer">
+                                <span class="tool-tag">API</span>
+                                <span class="tool-tag">Security</span>
+                                <span class="tool-tag">Go</span>
+                            </div>
+                        </div>
+                        <div class="tool-card">
+                            <div class="card-bg"></div>
+                            <div class="card-code">> root@secdet:~$ api-scan -e prod-api <br>> Endpoints: 142 <br>> Vulnerabilities: 17 <br>> Auth bypass: 2, IDOR: 5 </div>
+                            <div class="tool-header">
+                                <h3 class="tool-title">Meta-DataWipe</h3>
+                                <p class="tool-description">Библиотека Python, которая позволяет безопасно считывать и удалять метаданные из различных типов файлов, включая изображения, видео, аудио и документы+</p>
+                            </div>
+                            <div class="tool-body">
+                                <div class="tool-meta">
+                                    <div class="tool-stats">
+                                        <div>
+                                            <i class="fas fa-star"></i> 7
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-code-branch"></i> 0
+                                        </div>
+                                    </div>
+                                    <a target="_blank" href="https://github.com/Untouchable17/Meta-DataWipe" class="github-link">
+                                        <i class="fab fa-github"></i> GitHub </a>
+                                </div>
+                            </div>
+                            <div class="tool-footer">
+                                <span class="tool-tag">API</span>
+                                <span class="tool-tag">Security</span>
+                                <span class="tool-tag">Go</span>
+                            </div>
+                        </div>
+                        <div class="tool-card">
+                            <div class="card-bg"></div>
+                            <div class="card-code">> root@secdet:~$ api-scan -e prod-api <br>> Endpoints: 142 <br>> Vulnerabilities: 17 <br>> Auth bypass: 2, IDOR: 5 </div>
+                            <div class="tool-header">
+                                <h3 class="tool-title">Cam Hackers</h3>
+                                <p class="tool-description">Сканирует открытые IP-адреса видеокамер с помощью скрипта и выцепляет хосты для обработки. Запуск скрипта полностью автоматизирован</p>
+                            </div>
+                            <div class="tool-body">
+                                <div class="tool-meta">
+                                    <div class="tool-stats">
+                                        <div>
+                                            <i class="fas fa-star"></i> 4
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-code-branch"></i> 0
+                                        </div>
+                                    </div>
+                                    <a target="_blank" href="https://github.com/Untouchable17/Cam-Hackers" class="github-link">
+                                        <i class="fab fa-github"></i> GitHub </a>
+                                </div>
+                            </div>
+                            <div class="tool-footer">
+                                <span class="tool-tag">API</span>
+                                <span class="tool-tag">Security</span>
+                                <span class="tool-tag">Go</span>
+                            </div>
+                        </div>
+                        <div class="tool-card">
+                            <div class="card-bg"></div>
+                            <div class="card-code">> root@secdet:~$ api-scan -e prod-api <br>> Endpoints: 142 <br>> Vulnerabilities: 17 <br>> Auth bypass: 2, IDOR: 5 </div>
+                            <div class="tool-header">
+                                <h3 class="tool-title">Stealer: Cookies & Tokens</h3>
+                                <p class="tool-description">Стиллер для кражи конф.данных: куков и токенов с различных браузеров и сервисов, включая сайты, боты, приложения</p>
+                            </div>
+                            <div class="tool-body">
+                                <div class="tool-meta">
+                                    <div class="tool-stats">
+                                        <div>
+                                            <i class="fas fa-star"></i> 7
+                                        </div>
+                                        <div>
+                                            <i class="fas fa-code-branch"></i> 0
+                                        </div>
+                                    </div>
+                                    <a target="_blank" href="https://github.com/Untouchable17/Stealer-Cookies-Tokens" class="github-link">
+                                        <i class="fab fa-github"></i> GitHub </a>
+                                </div>
+                            </div>
+                            <div class="tool-footer">
+                                <span class="tool-tag">API</span>
+                                <span class="tool-tag">Security</span>
+                                <span class="tool-tag">Go</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="materials-section">
+                    <h2 class="section-title">Мои материалы</h2>
+                    <div class="materials-container">
+                        <div class="material-card">
+                            <div class="material-header">
+                                <h3 class="material-title">Active Directory for Red Teams 1</h3>
+                                <div class="material-source">
+                                    <i class="fa-brands fa-telegram"></i> Telegram
+                                </div>
+                            </div>
+                            <div class="material-content">
+                                <p class="material-excerpt">Рад представить вам первую статью из серии "Active Directory в Red Teaming". В этом материале я хочу ознакомить вас с основными принципами работы Active Directory и заинтересовать в дальнейшем изучении этой системы.</p>
+                                <a target="_blank" href="https://telegra.ph/Active-Directory-for-Red-Teams-1-06-05" class="material-link"> Читать статью <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="material-card">
+                            <div class="material-header">
+                                <h3 class="material-title">Active Directory for Red Teams: Offensive PowerShell</h3>
+                                <div class="material-source">
+                                    <i class="fa-brands fa-telegram"></i> Telegram
+                                </div>
+                            </div>
+                            <div class="material-content">
+                                <p class="material-excerpt">Во второй части разбираемся как эффективно управлять Active Directory с помощью перечисления объектов групповой политики, ACL и трастов. Ознакомимся с использованием PowerView и BloodHound для аудита и анализа безопасности. </p>
+                                <a target="_blank" href="https://telegra.ph/Active-Directory-for-Red-Teams-Offensive-PowerShell-06-07" class="material-link"> Читать статью <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="material-card">
+                            <div class="material-header">
+                                <h3 class="material-title">Active Directory-Domain Privilege Escalation</h3>
+                                <div class="material-source">
+                                    <i class="fa-brands fa-telegram"></i> Telegram
+                                </div>
+                            </div>
+                            <div class="material-content">
+                                <p class="material-excerpt">Основные принципы повышения привилегий в домене Active-Directory с помощью Kerberos, AS-REP, Set-SPN и делегирование протоколом Kerberos</p>
+                                <a target="_blank" href="https://telegra.ph/Active-Directory---Domain-Privilege-Escalation-07-21" class="material-link"> Читать статью <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="material-card">
+                            <div class="material-header">
+                                <h3 class="material-title">Эксплуатация Протоколов SSL/TLS</h3>
+                                <div class="material-source">
+                                    <i class="fa-brands fa-telegram"></i> Telegram
+                                </div>
+                            </div>
+                            <div class="material-content">
+                                <p class="material-excerpt">Руководство по практической эксплуатации SSL & TLS протоколов</p>
+                                <a target="_blank" href="https://telegra.ph/Kriptograficheskij-Apokalipsis-EHkspluataciya-Protokolov-SSLTLS-05-12" class="material-link"> Читать статью <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="material-card">
+                            <div class="material-header">
+                                <h3 class="material-title">Эксплуатация заголовков: HTTP и его скрытые угрозы</h3>
+                                <div class="material-source">
+                                    <i class="fa-brands fa-telegram"></i> Telegram
+                                </div>
+                            </div>
+                            <div class="material-content">
+                                <p class="material-excerpt">Руководство по практической эксплуатации заголовков HTTP протокола</p>
+                                <a target="_blank" href="https://telegra.ph/EHkspluataciya-zagolovkov-HTTP-i-ego-skrytye-ugrozy-05-14" class="material-link"> Читать статью <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="material-card">
+                            <div class="material-header">
+                                <h3 class="material-title">Тестирование Wi-Fi сетей WPA/WPA2 PSK</h3>
+                                <div class="material-source">
+                                    <i class="fa-brands fa-telegram"></i> Telegram
+                                </div>
+                            </div>
+                            <div class="material-content">
+                                <p class="material-excerpt">Руководство по практической эксплуатации WPA/WPA2 PSK протоколов</p>
+                                <a target="_blank" href="https://telegra.ph/Koshmarim-sosedej-Vzlom-Wi-Fi-setej-WPAWPA2-PSK-08-10" class="material-link"> Читать статью <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <footer class="site-footer">
+                    <div class="footer-content">
+                        <p>© 2025 SecDet Samurai. Все права защищены.</p>
+                        <p>Мы не будем менять этот мир - мы перепишем код</p>
+                    </div>
+                </footer>
+            </div>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const progress = document.getElementById('progress');
+                const percentage = document.getElementById('percentage');
+                const loadingMessages = document.getElementById('loadingMessages');
+                const loadingContainer = document.getElementById('loadingContainer');
+                const terminalCode = document.getElementById('terminalCode');
+                const preloader = document.getElementById('preloader');
+                const preloaderLogo = document.getElementById('preloaderLogo');
+                const content = document.getElementById('content');
+                const menuToggle = document.getElementById('menu-toggle');
+                const sidebar = document.getElementById('sidebar');
+                const soundToggle = document.getElementById('soundToggle');
+                const hackContainer = document.getElementById('hackContainer');
+                const hackBtn = document.getElementById('hackBtn');
+                const mainTitle = document.getElementById('mainTitle');
+                const mainSubtitle = document.getElementById('mainSubtitle');
+                const username = document.getElementById('username');
+                const userTitle = document.getElementById('userTitle');
+                const usernameContainer = document.getElementById('usernameContainer');
+                const userTitleContainer = document.getElementById('userTitleContainer');
+                const ambientSound = document.getElementById('ambientSound');
+                const hoverSound2 = document.getElementById('hoverSound2');
+                const startSound = document.getElementById('startSound');
+                const completeSound = document.getElementById('completeSound');
+                const hoverSound = document.getElementById('hoverSound');
+                const clickSound = document.getElementById('clickSound');
+                const textSound = document.getElementById('textSound');
+                const navHoverSound = document.getElementById('navHoverSound');
+                const fadeOutSound = document.getElementById('fadeOutSound');
+                let soundEnabled = true;
+                let startSoundPlayed = false;
+                const startTime = Date.now();
+                const LOADING_TIMEOUT = 5000;
+
+                function playSound(sound) {
+                    if (!soundEnabled || !sound) return;
+                    try {
+                        sound.currentTime = 0;
+                        sound.play().catch(e => console.warn("Audio error:", e));
+                    } catch (e) {
+                        console.error("Sound playback failed:", e);
+                    }
+                }
+                soundToggle.addEventListener('click', function() {
+    soundEnabled = !soundEnabled;
+    if (soundEnabled) {
+        this.innerHTML = '<i class="fas fa-volume-up"></i>';
+        this.classList.remove('muted');
+    } else {
+        this.innerHTML = '<i class="fas fa-volume-mute"></i>';
+        this.classList.add('muted');
+    }
+});
+                if (soundEnabled && !startSoundPlayed) {
+                    playSound(startSound);
+                    startSoundPlayed = true;
+                }
+                const messages = ["Анализ сетевой инфраструктуры...", "Сканирование открытых портов...", "Проверка системных журналов...", "Инициализация криптографических модулей...", "Загрузка базы эксплойтов...", "Проверка целостности системы...", "Активация протоколов безопасности...", "Подготовка интерфейса пользователя..."];
+                let width = 0;
+                let messageIndex = 0;
+
+                function frame() {
+                    if (Date.now() - startTime > LOADING_TIMEOUT) {
+                        width = 100;
+                    }
+                    if (width >= 100) {
+                        clearInterval(interval);
+                        playSound(completeSound);
+                        loadingContainer.style.opacity = '0';
+                        terminalCode.style.opacity = '0';
+                        setTimeout(() => {
+                            loadingContainer.style.display = 'none';
+                            terminalCode.style.display = 'none';
+                            loadingMessages.textContent = "Для продолжения нажмите на кнопку";
+                            loadingMessages.style.fontSize = '1.2rem';
+                            loadingMessages.style.color = '#00ff99';
+                            loadingMessages.style.textShadow = '0 0 10px rgba(0, 255, 150, 0.4)';
+                            hackContainer.style.display = 'flex';
+                            setTimeout(() => {
+                                hackContainer.style.opacity = '1';
+                            }, 10);
+                        }, 300);
+                    } else {
+                        // Увеличил скорость заполнения прогресс-бара
+                        width += Math.random() * 8 + 3; // Было: 4 + 1
+                        if (width > 100) width = 100;
+                        progress.style.width = width + '%';
+                        percentage.textContent = Math.floor(width) + '%';
+                        
+                        // Ускорил смену сообщений
+                        if (width >= messageIndex * (100 / messages.length) && messageIndex < messages.length) {
+                            loadingMessages.textContent = messages[messageIndex];
+                            messageIndex++;
+                        }
+                    }
+                }
+                let interval = setInterval(frame, 100);
+                hackBtn.addEventListener('mouseenter', function() {
+                    playSound(hoverSound);
+                    this.style.transform = 'scale(1.05)';
+                    this.style.boxShadow = '0 0 25px rgba(0, 255, 150, 0.6)';
+                });
+                hackBtn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                    this.style.boxShadow = '0 0 15px rgba(0, 255, 150, 0.3)';
+                });
+                hackBtn.addEventListener('click', function() {
+                    playSound(clickSound);
+                    playSound(ambientSound);
+                    loadingMessages.style.opacity = '0';
+                    hackContainer.style.opacity = '0';
+                    setTimeout(() => {
+                        playSound(fadeOutSound);
+                        preloaderLogo.classList.add('preloader-logo-fade');
+                        setTimeout(() => {
+                            preloader.style.opacity = '0';
+                            preloader.style.visibility = 'hidden';
+                            content.style.display = 'block';
+                            content.style.opacity = '1';
+                            setTimeout(() => {
+                                animateText(mainTitle, textSound);
+                            }, 100);
+                        }, 1000);
+                    }, 500);
+                });
+
+                function animateText(element, sound) {
+                    const originalText = element.textContent;
+                    element.textContent = '';
+                    element.classList.add('typing-text');
+                    let i = 0;
+                    const typeInterval = setInterval(() => {
+                        if (i < originalText.length) {
+                            element.textContent += originalText.charAt(i);
+                            if (soundEnabled && i % 3 === 0) playSound(sound);
+                            i++;
+                        } else {
+                            clearInterval(typeInterval);
+                            element.classList.remove('typing-text');
+                            sound.pause();
+                        }
+                    }, 50);
+                }
+
+                function addHoverSoundToElements(elements) {
+                    elements.forEach(item => {
+                        item.addEventListener('mouseenter', function() {
+                            playSound(hoverSound2);
+                        });
+                    });
+                }
+                const hoverElements = [...document.querySelectorAll('.resource-item'), ...document.querySelectorAll('.tool-card'), ...document.querySelectorAll('.skill-category'), ...document.querySelectorAll('.material-card'), ...document.querySelectorAll('.slider-btn'), ...document.querySelectorAll('.slider-dot'), ...document.querySelectorAll('.sidebar-item-hover, .social-link')];
+                addHoverSoundToElements(hoverElements);
+
+                usernameContainer.addEventListener('mouseenter', function() {
+                    playSound(navHoverSound);
+                    animateChars(username);
+                });
+                userTitleContainer.addEventListener('mouseenter', function() {
+                    playSound(navHoverSound);
+                });
+                menuToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                });
+
+                function createMatrixEffect() {
+                    const container = document.createElement('div');
+                    container.className = 'matrix-code';
+                    document.body.appendChild(container);
+                    const chars = "01!@#$%^&*()_+-=[]{}|;:,.<>?abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                    for (let i = 0; i < 30; i++) {
+                        const row = document.createElement('div');
+                        row.className = 'matrix-row';
+                        for (let j = 0; j < 50; j++) {
+                            const char = document.createElement('span');
+                            char.textContent = chars.charAt(Math.floor(Math.random() * chars.length));
+                            char.style.opacity = Math.random() * 0.5 + 0.1;
+                            char.style.animationDelay = `${Math.random() * 2}s`;
+                            row.appendChild(char);
+                        }
+                        container.appendChild(row);
+                    }
+                }
+                createMatrixEffect();
+
+                function animateValue(element, start, end, duration) {
+                    let startTimestamp = null;
+                    const step = (timestamp) => {
+                        if (!startTimestamp) startTimestamp = timestamp;
+                        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                        const value = Math.floor(progress * (end - start) + start);
+                        element.textContent = value.toLocaleString();
+                        if (progress < 1) {
+                            window.requestAnimationFrame(step);
+                        }
+                    };
+                    window.requestAnimationFrame(step);
+                }
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            animateValue(document.getElementById('bugCount'), 0, 4, 2000);
+                            animateValue(document.getElementById('bountyCount'), 0, 2, 2500);
+                            animateValue(document.getElementById('toolCount'), 0, 20, 1500);
+                            animateValue(document.getElementById('researchCount'), 0, 24, 1800);
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, {
+                    threshold: 0.5
+                });
+                observer.observe(document.querySelector('.stats-section'));
+                const sliderTrack = document.getElementById('sliderTrack');
+                const sliderItems = document.querySelectorAll('.slider-item');
+                const sliderDotsContainer = document.getElementById('sliderDots');
+                const prevBtn = document.getElementById('prevBtn');
+                const nextBtn = document.getElementById('nextBtn');
+                let currentIndex = 0;
+                let sliderDots = [];
+                sliderItems.forEach((_, index) => {
+                    const dot = document.createElement('div');
+                    dot.classList.add('slider-dot');
+                    if (index === 0) dot.classList.add('active');
+                    dot.addEventListener('click', () => {
+                        goToSlide(index);
+                    });
+                    sliderDotsContainer.appendChild(dot);
+                    sliderDots.push(dot);
+                });
+
+                function goToSlide(index) {
+                    currentIndex = index;
+                    sliderTrack.style.transform = `translateX(-${currentIndex * 100}%)`;
+                    sliderDots.forEach((dot, i) => {
+                        dot.classList.toggle('active', i === currentIndex);
+                    });
+                }
+                nextBtn.addEventListener('click', () => {
+                    currentIndex = (currentIndex + 1) % sliderItems.length;
+                    goToSlide(currentIndex);
+                });
+                prevBtn.addEventListener('click', () => {
+                    currentIndex = (currentIndex - 1 + sliderItems.length) % sliderItems.length;
+                    goToSlide(currentIndex);
+                });
+                setInterval(() => {
+                    nextBtn.click();
+                }, 5000);
+                document.getElementById('mobileOverlay').addEventListener('click', function() {
+                    sidebar.classList.remove('active');
+                    this.style.display = 'none';
+                });
+                if ('ontouchstart' in window) {
+                    document.querySelectorAll('.card, .tool-card, .material-card').forEach(card => {
+                        card.style.cursor = 'pointer';
+                    });
+                }
+            });
+        </script>
+    </body>
+</html>
